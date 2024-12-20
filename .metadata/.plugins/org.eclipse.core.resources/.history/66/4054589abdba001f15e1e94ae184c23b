@@ -1,0 +1,5 @@
+package com.practice.spring_framework.business_calc;
+
+public interface DataService {
+	int [] retreiveData() ;
+}

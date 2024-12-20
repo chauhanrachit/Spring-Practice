@@ -1,0 +1,71 @@
+Spring Framework - Important Terminologies
+
+Tight Coupling -  When classes are heavily dependent on each other, a change in one class impacts others. 
+				  This makes code rigid and difficult to maintain.
+
+Loose Coupling - Classes interact through interfaces or abstractions, minimizing dependencies. 
+				 This enhances flexibility and maintainability.
+
+Java Interfaces - Interfaces define a contract for classes, allowing multiple implementations. 
+				  They promote loose coupling and abstraction.
+
+Spring Container - It is the core of the Spring Framework responsible for managing the lifecycle, configuration, 
+				   and dependencies of beans.
+
+Application Context - A specialized Spring container providing advanced features like internationalization, 
+					  event propagation, and application-layer context.
+
+Basic Annotations - Core annotations like @Component, @Controller, @Service, and @Repository mark classes as Spring-managed components.
+
+@Configuration - An annotation used to indicate a class as a source of bean definitions for the Spring IoC container.
+
+@Bean - Declares a method that produces a bean to be managed by the Spring container, often used within @Configuration classes.
+
+Auto-wiring - Automatically resolves bean dependencies using annotations like @Autowired, reducing manual configuration.
+
+Java Bean vs Spring Bean - Java Beans are simple Java objects with private fields and public getters/setters. 
+						   Spring Beans are managed components instantiated, configured, and controlled by the Spring container.
+
+------------------------------------------------------------------------------------------------------------------------------
+
+@Component - An instance of the class will be managed by the Spring Framework
+
+Dependency - Ex. - GameRunner class needs an implementation of the GamingConsole Interface 
+			 So, GamingConsole Implementation(Ex. MarioGame) is a dependency of GameRunner
+			 
+ComponentScan - How does Spring Framework find Component classes ? 
+				It scans packages defined in @ComponentScan("com.practice.spring_framework.game") 
+				as well as as the sub package defined inside it.
+				If no package defined, then it searches for components in the package it is written and the sub packages of that package.
+				
+Dependency Injection - Identify Beans, their dependencies and then wiring them together (provides IOC - Inversion of Control)
+
+Autowiring - Process of wiring in dependencies for a Spring Bean. 
+			 Types - Field DI, Setter DI, Constructor DI (recommended)
+
+Spring Beans - An object managed by Spring Framework.
+
+IOC Container - Manages the life cycle of beans and dependencies. Spring Container is a specific implementation of the IOC principle. 
+				Types - BeanFactory(Simpler features, rarely used), Application Context (complex).
+
+@Component vs @Bean
+
+Heading						@Component													@Bean
+
+Where?				Can be used on any Java class						Typically used on methods in Spring Configuration classes
+
+Ease of use			Very easy. Just add an annotation.					You write all the code.
+
+Autowiring			Yes - Field, Setter or Constructor Injection		Yes - method call or method parameters
+
+Who creates beans?	Spring Framework									You write bean creation code
+
+Recommended For		Instantiating Beans for Your Own Application 		1: Custom Business Logic
+					Code: @Component									2: Instantiating Beans for 3rd-party libraries: @Bean
+
+
+
+																		
+
+
+

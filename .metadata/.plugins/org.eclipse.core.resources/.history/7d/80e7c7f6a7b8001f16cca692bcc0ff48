@@ -1,0 +1,14 @@
+package com.practice.spring_framework;
+
+import com.practice.spring_framework.game.MarioGame;
+
+public class AppGamingBasic {
+
+	public void main() {
+		// TODO Auto-generated method stub
+		var marioGame = new MarioGame();
+		var gameRunner = new new GameRunner(marioGame);
+		gameRunner.run();
+	}
+
+}

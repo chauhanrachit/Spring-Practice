@@ -1,0 +1,30 @@
+package com.practice.spring_framework;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.practice.spring_framework.game.GameRunner;
+import com.practice.spring_framework.game.PacMan;
+
+@Configuration
+public class GamingConfiguration {
+	
+	@Bean
+	public String name() {
+		return "Name";
+	}
+	
+	//var game = new MarioGame();
+	//var game = new SuperContraGame();
+	var game = new PacMan();
+
+	//1: Object Creation
+			
+	var gameRunner = new GameRunner(game);
+			
+	//2: Object Creation + Wiring of Dependencies
+	// Game is a Dependency of GameRunner
+			
+	gameRunner.run();
+	
+}

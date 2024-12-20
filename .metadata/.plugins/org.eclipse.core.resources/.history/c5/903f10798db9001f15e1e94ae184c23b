@@ -1,0 +1,15 @@
+package com.practice.spring_framework.game;
+
+public interface GamingConsole {
+	void up();
+	
+	void down();
+	
+	void left();
+	
+	void right();
+		
+	default void print() {
+		System.out.println(this.toString());
+	}
+}

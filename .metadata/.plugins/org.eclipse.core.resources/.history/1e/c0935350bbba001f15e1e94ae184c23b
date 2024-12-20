@@ -1,0 +1,27 @@
+package com.practice.spring_framework.business_calc;
+
+import java.util.Arrays;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+import com.practice.spring_framework.game.*;
+
+@Configuration
+@ComponentScan
+public class BusinessCalculationService {
+	
+	
+	public static void main(String[] args) {
+		try (// TODO Auto-generated method stub
+		var context = new AnnotationConfigApplicationContext(BusinessCalculation.class)) {
+			//context.getBean(GamingConsole.class).up();
+			//context.getBean(GameRunner.class).run();
+			Arrays.stream(context.getBeanDefinitionNames())
+				.forEach(System.out::println);
+		} 
+	}
+}
