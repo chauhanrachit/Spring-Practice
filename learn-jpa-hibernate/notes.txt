@@ -1,0 +1,5 @@
+select * from course;
+
+insert into course (id,name,author) values (1,'Learn SpringBoot','Rachit');
+
+delete from course where id=1
