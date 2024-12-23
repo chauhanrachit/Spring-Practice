@@ -1,0 +1,171 @@
+Getting Started with JPA and Hibernate
+
+Learning JPA and Hibernate - Approach
+
+01: Create a Spring Boot Project with H2
+02: Create COURSE table
+03: Use Spring JDBC to play withCOURSE table
+04: Use JPA and Hibernate to play with COURSE table
+05: Use Spring Data JPA to play with COURSE table
+
+--------------------------------------------------------------------------------------------------------------------
+
+Spring Boot Auto Configuration 
+
+	We added Data JPA and H2 dependencies:
+	
+		Spring Boot Auto Configuration does some magic:
+		
+			Initialize JPA and Spring Data JPA frameworks
+			Launch an in memory database (H2)
+			Setup connection from App to in-memory database
+			Launch a few scripts at startup (example: data.sql, schema.sql)
+			
+	Remember - H2 is in memory database
+	
+		Does NOT persist data
+		Great for learning
+		BUT NOT so great for production
+
+--------------------------------------------------------------------------------------------------------------------
+
+JDBC to Spring JDBC to JPA to Spring Data JPA
+
+	JDBC
+		Write a lot of SQL queries! (delete from todo where id=?)
+		And write a lot of Java code
+		
+	Spring JDBC
+		Write a lot of SQL queries (delete from todo where id=?)
+		BUT lesser Java code
+		
+	JPA
+		Do NOT worry about queries
+		Just Map Entities to Tables!
+		
+	Spring Data JPA
+		Let's make JPA even more simple!
+		I will take care of everything!
+
+--------------------------------------------------------------------------------------------------------------------
+
+JDBC To Spring JDBC
+
+	JDBC Example -
+	
+		public void deleteTodoJDBC(int id) {
+		    PreparedStatement st = null;
+		    try {
+		        st = db.conn.prepareStatement("delete from todo where id=?");
+		        st.setInt(1, id);
+		        st.execute();
+		    } catch (SQLException e) {
+		        logger.fatal("Query Failed: ", e);
+		    } finally {
+		        if (st != null) {
+		            try {
+		                st.close();
+		            } catch (SQLException e) {
+		                logger.error("Failed to close PreparedStatement: ", e);
+		            }
+		        }
+		    }
+		}
+	
+	Spring JDBC example-
+	
+		public void deleteTodoSpringJDBC(int id) {
+		    jdbcTemplate.update("delete from todo where id=?", id);
+		}
+		
+	JPA Example - 
+	
+		@Repository
+		public class PersonJpaRepository {
+		
+		    @PersistenceContext
+		    private EntityManager entityManager;
+		
+		    // Find a person by ID
+		    public Person findById(int id) {
+		        return entityManager.find(Person.class, id);
+		    }
+		
+		    // Update a person
+		    public Person update(Person person) {
+		        return entityManager.merge(person);
+		    }
+		
+		    // Insert a person
+		    public Person insert(Person person) {
+		        return entityManager.merge(person);
+		    }
+		
+		    // Delete a person by ID
+		    public void deleteById(int id) {
+		        Person person = entityManager.find(Person.class, id);
+		        if (person != null) {
+		            entityManager.remove(person);
+		        }
+		    }
+		}
+		
+	Spring Data JPA Example-
+	
+		public interface TodoRepository extends JpaRepository<Todo, Integer> {
+		    // No need to write boilerplate code; JpaRepository provides basic CRUD operations.
+		}
+				
+--------------------------------------------------------------------------------------------------------------------
+
+Hibernate vs JPA
+
+	JPA defines the specification. It is an API.
+	
+		How do you define entities?
+		How do you map attributes?
+		Who manages the entities?
+		
+	Hibernate is one of the popular implementations of JPA
+	
+	Using Hibernate directly would result in a lock in to Hibernate
+	
+		There are other JPA implementations (Toplink, for example)
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

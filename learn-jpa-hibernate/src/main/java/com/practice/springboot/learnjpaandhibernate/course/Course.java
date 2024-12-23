@@ -3,7 +3,9 @@ package com.practice.springboot.learnjpaandhibernate.course;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.transaction.Transactional;
 
+@SuppressWarnings("unused")
 @Entity
 //@Entity(name="course") -> table name if it is different 
 public class Course {

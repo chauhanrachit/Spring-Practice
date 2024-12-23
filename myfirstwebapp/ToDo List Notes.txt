@@ -1,0 +1,8 @@
+
+In SayHelloController.java-
+
+@Controller							//To tell spring that this is a bean, and this is a web-ui related component 
+@RequestMapping("say-hello")		//used to map with the specified parameters , which comes after the main component of the URl
+@ResponseBody						//returns whatever is returned by the method, as is to the browser
+
+	
