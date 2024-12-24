@@ -5,4 +5,113 @@ In SayHelloController.java-
 @RequestMapping("say-hello")		//used to map with the specified parameters , which comes after the main component of the URl
 @ResponseBody						//returns whatever is returned by the method, as is to the browser
 
+--------------------------------------------------------------------------------------------------------------------------
+
+For Using View(In this case JSP)-
+
+	@RequestMapping("say-hello-jsp")
+	//@ResponseBody  //this will return whatever is written directly. So, as we want to redirect to a view (JSP), we will remove it.
+	public String sayHelloJsp() {
+		return "sayHello";
+	}
+
+Usual path of JSP files
+myfirstwebapp/src/main/resources/META-INF/resources/WEB-INF/jsp/
+
+Entries in application.properties(#-comment) - 
+
+	#spring.mvc.view.prefix=/src/main/resources/META-INF/resources/WEB-INF/jsp/
+	#Spring knows the path upto META-INF/resources, so the path we have to give becomes - 
+	spring.mvc.view.prefix=/WEB-INF/jsp/
+	spring.mvc.view.suffix=.jsp
 	
+	--
+	#added to get logs of org.springframework level 
+	logging.level.org.springframework=debug
+	logging.level.com.practice.springboot.myfirstwebapp=debug
+	
+	#lggoing levels - trace>debug>info>warn>error
+	
+	
+	In Java file for logging with slf4j Logger, Ex -
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
+	logger.info("Request Param is - {}", name);		//{} - will get replaced by the variable name
+	
+--------------------------------------------------------------------------------------------------------------------------
+
+
+	@RequestMapping("login")
+	public String gotoLoginPage(@RequestParam String name, ModelMap model) {
+		//ModelMap is used to pass what is received from Requestparam to the view (JSP)
+		model.put("name", name);
+		System.out.println("Request Param is - " + name);
+		return "login";
+	}
+	
+	ModelMap - 	//ModelMap is used to pass what is received from Requestparam to the view (JSP)
+		Ex -  	// putting a value in ModelMap -- model.put("name", name);
+	@RequestParam  - Used to receive parameters from the URL of the browser
+		Ex - 	//http://localhost:8080/login?name=Rachit
+		
+		
+	To access what is passed in the model map in JSP, Expression Language(EL) is used
+	
+	Ex- 
+	
+	<html>
+		<head>
+			<title>Login Page</title>
+		</head>
+		<body>
+			Welcome to the Login Page ${name}!
+		</body>
+	</html>
+	
+--------------------------------------------------------------------------------------------------------------------------
+	
+	//login
+	//GET,POST both are being handled by this method, if we want it to only handle GET method---
+	@RequestMapping(value="login",method = RequestMethod.GET)
+	public String gotoLoginPage() {
+		//model.put("name", name);
+		return "login";
+	}
+	
+	@RequestMapping(value="login",method = RequestMethod.POST)
+	public String gotoWelcomePage(@RequestParam String name,@RequestParam String password, ModelMap model) {
+		model.put("name", name);
+		model.put("password", password);
+		return "welcome";
+	}
+	
+	--
+	
+	changes in body of login.jsp
+	
+	<body>
+		Welcome to the Login Page !
+		<form method ="post">
+			Name: <input type ="text" name="name">
+			Password: <input type ="password" name="password">
+			<input type = "submit">
+		</form>
+	</body>
+	
+	welcome.jsp -
+	
+	<html>
+		<head>
+			<title>Welcome Page</title>
+		</head>
+		<body>
+			<div>Welcome to Welcome Page !</div>
+			<div>Your Name 	   is -  ${name} 	 !</div>
+			<div>Your Password is -  ${password} !</div>		
+		</body>
+	</html>
+--------------------------------------------------------------------------------------------------------------------------
+	
+	
+	
+

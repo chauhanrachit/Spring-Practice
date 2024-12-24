@@ -33,4 +33,17 @@ public class SayHelloController {
 
 		return sb.toString();
 	}
+	
+	//say-hello-jsp => say-hello.jsp
+	//myfirstwebapp/src/main/resources/META-INF/resources/WEB-INF/jsp/sayHello.jsp
+	//@ResponseBody  //this will return whatever is written directly,So, as we want to redirect to a view (JSP), we will remove it.
+	@RequestMapping("say-hello-jsp")
+	public String sayHelloJsp() {
+		return "sayHello";
+	}
+	
+	
+	
+	
+	
 }
