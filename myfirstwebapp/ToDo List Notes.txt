@@ -112,6 +112,144 @@ Entries in application.properties(#-comment) -
 	</html>
 --------------------------------------------------------------------------------------------------------------------------
 	
+Setting Up Todo class -
+
+	Todo.java
 	
+		private int id;
+		private String username;
+		private String description;
+		private LocalDate targateDate;
+		private boolean done;
+		
+		main variables of Todo Application
+		
+	TodoService.java
+		
+		Creating Static list of Todo.java, and creating Static Block to initialize Static Variable
+		
+		public List<Todo> findByUsername ( String username){
+			return todos;
+		}
+		
+	TodoController.java
 	
+		private TodoService todoService;
+		public TodoController(TodoService todoService) {
+			super();
+			this.todoService = todoService;
+		}
+		@RequestMapping("list-todos")
+		public String listAllTodos(ModelMap model) {
+			List<Todo> todos=todoService.findByUsername("Rachit");
+			model.addAttribute("todos",todos);	
+			return "listTodos";
+		}
+		
+		listTodos.JSP
+		
+		<html>
+			<head>
+				<title>List Todos Page</title>
+			</head>
+			<body>
+				<div>Welcome to Welcome Page !</div>
+				<div>Your Todos are   ${todos} 	 !</div>
+				<!--<div>Your Password is -  ${password} !</div> -->	
+			</body>
+		</html>
+		
+
+	DIfference Between Request, Model, Session
+	
+		Request	- 	The data entered by the user (Visible in the Payload of Network tab of Inspect), is only valid for that specific 
+				  	request, i.e., after that request the data does not move forward in the payload, it is removed from the payload 
+				  	of the next REQUEST.
+				  	
+		Model	-	Whenever a value is put in model, it is only available in the scope of that request.
+					Ex - If we are putting data in a model and showing it to the user through the Jsp, and if the user is sending 
+					any request, and a new jsp is opened, that data which was shown through model, will not be available.
+					
+		Session	-	@SessionAttributes("name")
+					Written above the class, it makes the field specified across the server, but in which ever class this field is 
+					required, @SessionAttributes("name") annotation will need to be specified for that class as well.
+					
+					
+----------------------------------------------------------------------------------------------------------------------------------
+Added in pom.xml for JSPs --
+
+		<dependency>
+			<groupId>jakarta.servlet.jsp.jstl</groupId>
+			<artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.glassfish.web</groupId>
+		    <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+		</dependency>
+		
+	Added in jsp files - 
+		
+		<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+		
+		Using the library --
+		
+		<table>
+			<thead>
+				<tr>
+					<th> Id </th>
+					<th> Description </th>
+					<th> Targate Date </th>
+					<th> Is Done ? </th>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach items = "${todos}" var = "todo">
+					<tr>
+						<td>${todo.id}</td>
+						<td>${todo.description}</td>
+						<td>${todo.targateDate}</td>
+						<td>${todo.done}</td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+		
+-------------------------------------------------------------------------------------------------------------------
+
+Setting Up BootStrap for the project - 
+
+	In pom.xml add the dependencies - 
+	
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>5.1.3</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>jquery</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+		
+	In the Jsp file, CSS is added in the beginning, and JavaScript is added at the end of the body  -
+	
+		<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+		<html>
+			<head>
+				<link href="webjars/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet" >
+				<title>List Todos Page</title>
+			</head>
+			-
+			-
+			-
+				<script src="webjars/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+				<script src="webjars/jquery/3.6.0/jquery.min.js"></script>
+			</body>
+		</html>
+		
+
+
+					 
 
