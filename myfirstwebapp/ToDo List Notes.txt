@@ -293,6 +293,13 @@ For adding a new Todo to the currently Static List -
 
 Using Command Beans to Implement New Todo Page Validations
 
+	In pom.xml -
+	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
 	In todo.jsp --
 		
 		Add the Spring Tag lib (It is used to access spring tags in JSP)
