@@ -2,6 +2,9 @@ package com.practice.springboot.myfirstwebapp.todo;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Size;
+
 //Should be stored in DataBase (Ex - MySQL)
 //But for now , using Static List of todos => will shift later to database(H2, MySQL)
 
@@ -10,7 +13,11 @@ public class Todo {
 
 	private int id;
 	private String username;
+	
+	@Size(min=10,message = "Enter atleast 10 Characters")
 	private String description;
+	
+	@FutureOrPresent(message = "Enter A Valid Present or Future Data")
 	private LocalDate targateDate;
 	private boolean done;
 

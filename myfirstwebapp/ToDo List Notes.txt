@@ -249,7 +249,176 @@ Setting Up BootStrap for the project -
 			</body>
 		</html>
 		
+		The path in src and href is taken from the maven dependencies, 
+			
+			Search bootstrap>META-INF>resources>webjars>bootstrap>5.1.3>css>bootstrap.min.css
+			
+			Search bootstrap>META-INF>resources>webjars>bootstrap>5.1.3>js>bootstrap.min.js
 
+			Search    jquery>META-INF>resources>jquery>bootstrap>3.6.0>jquery.min.js
+			
+			Copy the qualified name 
+			
+-------------------------------------------------------------------------------------------------------------------
+For adding a new Todo to the currently Static List - 
+
+	Create a Button in listTodos.jsp -- <a href="add-todo" class = "btn btn-success">Add Todo</a> 
+	
+	Creating a function in TodoController, to open a new JSP page for URL path -- "add-todo"  - 
+		@RequestMapping(value="add-todo",method =RequestMethod.GET )
+			public String showNewTodoPage() {
+				return "todo";
+			}
+			
+	Creating The JSP todo -
+		<h1>Enter Todo Details</h1>
+		<form method = "post">
+				Description:<input type ="text" name="description"/>
+				<input type="submit" class = "btn btn-success">
+		</form>	
+		
+	Creating a function in TodoController, to get the data from above JSP to TodoController.java -
+		@RequestMapping(value="add-todo",method =RequestMethod.POST )
+		public String addNewTodo(ModelMap model, @RequestParam String description) {
+			todoService.addTodo((String)model.get("name"),description,LocalDate.now().plusYears(1),false);
+			return "redirect:list-todos";
+		}
+		
+	Creating a function in TodoService, to get the above data in the Todo List -
+		public void addTodo ( String username, String description, LocalDate targateDate, boolean done){
+			todos.addLast(new Todo(++todosCount,username,description,targateDate,done));
+		} 
+			
+-------------------------------------------------------------------------------------------------------------------
+
+Using Command Beans to Implement New Todo Page Validations
+
+	In todo.jsp --
+		
+		Add the Spring Tag lib (It is used to access spring tags in JSP)
+								(In google, Search - 'spring form tag library'  , 
+								In docs.spring.io- '18. View technologies' 
+								inside search - 'form tag' and go to - '18.2.4 Using Spring's form tag library' 
+								and copy it from there)
+		<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+		
+		<form:form method = "post" modelAttribute="todo">
+			Description:<form:input type ="text" path="description" required="required"/>
+						<form:errors path="description" cssClass="text-warning"/>
+						<form:input type ="hidden" path="id"	/>
+						<form:input type ="hidden" path="done"	/>
+			<input type="submit" class = "btn btn-success">
+		</form:form>
+		
+		Using form: tag from spring library to access model todo here.So, we can do 2 way binding i.e.- get data from form and 
+		send data data to form, it can be default values,validations or/ and error meesages as well.
+		
+		cssClass of Spring Library is just like Class tag of CSS library, but for Spring
+		
+		In TodoController.java
+		
+			@RequestMapping(value = "add-todo", method = RequestMethod.GET)
+			public String showNewTodoPage(ModelMap model) {
+				Todo todo = new Todo(0, (String) model.get("name"), null, LocalDate.now(), false); 
+				model.put("todo", todo);
+				return "todo";
+			}
+			//setting the default values which will be shown to front end. It is mandatory here to put an object of Todo.class
+			//in the model so the JSP can access it, as we are mapping the model with the jsp inside it at GET requestMethod			
+			
+			@RequestMapping(value = "add-todo", method = RequestMethod.POST)
+			public String addNewTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+				if (result.hasErrors()) 
+					return "todo";
+				todoService.addTodo((String) model.get("name"), todo.getDescription(), LocalDate.now().plusYears(1), false);
+				return "redirect:list-todos";
+			}
+			//Doing a Request Mapping for each parameter is not a feasible thing. So an entire class is mapped where the variables
+			//which will be accessed by the JSP are defined, in our case it is Todo.class which is kind of our db here.
+			//@Valid Todo todo - Here @Valid annotation is used to check that the validations defined in class Todo are fulfilled
+			//BindingResult result - It is used to get the errors from the Validations on the front end
+		
+		
+		In Todo.java -
+			
+			@Size(min=10,message = "Enter atleast 10 Characters")
+			private String description;
+			
+			@FutureOrPresent(message = "Enter A Valid Present or Future Data")
+			private LocalDate targateDate;
+		//The above annotations are validation constraints
+		
+-------------------------------------------------------------------------------------------------------------------
+Implementing Delete Todo Feature -
+
+	In TodoService.java adding the following function
+	
+		public void deleteById (int id){
+			//todo.getId()==id
+			// todo ->todo.getId()==id
+			Predicate<? super Todo> predicate = todo ->todo.getId()==id;
+			todos.removeIf(predicate);
+		}
+		
+	In listTodos.jsp
+		
+		adding an empty header in table 
+			<th></th>
+		
+		adding a row in body of the table
+			<td><a href="delete-todo?id=${todo.id}" class = "btn btn-warning">DELETE</a></td>
+		
+	In TodoController.java
+	
+		@RequestMapping("delete-todo")
+		public String deleteTodo(@RequestParam int id) {
+			todoService.deleteById(id);
+			return "redirect:list-todos";
+		}	
+		
+-------------------------------------------------------------------------------------------------------------------
+Implementing Update Todo Feature -
+
+	In TodoService.java adding the following function
+		
+		public Todo findById(int id) {
+			Predicate<? super Todo> predicate = todo ->todo.getId()==id;
+			return todos.stream().filter(predicate).findFirst().get();
+		}
+		public void updateTodo(Todo todo) {
+			deleteById(todo.getId());
+			todos.add(todo);
+		}
+		
+	In TodoController.java
+	
+		@RequestMapping(value="update-todo",method=RequestMethod.GET)
+		public String showUpdateTodoPage(ModelMap model,@RequestParam int id) {
+			Todo todo= todoService.findById(id);
+			model.addAttribute("todo", todo);
+			return "todo";
+		}
+		
+		@RequestMapping(value = "update-todo", method = RequestMethod.POST)
+		public String updateTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+			
+			if (result.hasErrors()) {
+				return "todo";
+			}
+			todo.setUsername((String)model.get("name"));
+			todoService.updateTodo(todo);
+			return "redirect:list-todos";
+		}
+		
+	In listTodos.jsp
+		
+		adding an empty header in table 
+			<th></th>
+		
+		adding a row in body of the table
+			<td><a href="update-todo?id=${todo.id}" class = "btn btn-success">Update</a></td>	
+
+-------------------------------------------------------------------------------------------------------------------
 
 					 
 
