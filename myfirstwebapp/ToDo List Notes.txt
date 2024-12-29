@@ -426,6 +426,287 @@ Implementing Update Todo Feature -
 			<td><a href="update-todo?id=${todo.id}" class = "btn btn-success">Update</a></td>	
 
 -------------------------------------------------------------------------------------------------------------------
+Adding targetDate to todo page
 
+	in pom.xml
+	
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap-datepicker</artifactId>
+			<version>1.9.0</version>
+		</dependency>
+		
+	in todo.jsp 
+		
+		In header 
+		<link href="webjars/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.standalone.min.css" rel="stylesheet" >
+		
+		In body, around the end where all scripts are called 
+			<script type="text/javascript">
+				$('#targetDate').datepicker({
+				    format: 'dd-mm-yyyy'
+				});
+			</script>	
+			
+	in application.properties 
+		
+		spring.mvc.format.date=dd-MM-yyyy
+		This property is added for a default date format throughout application
+				
+-------------------------------------------------------------------------------------------------------------------
+
+Adding a navigation Bar
+
+	IN the header part of the JSP, add - 
+	
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-3 p-1">
+		<a class="navbar-brand m-1" href="/">Todo Application</a>
+		<div class="collapse navbar-collapse">
+			<ul class="navbar-nav">
+				<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+				<li class="nav-item"><a class="nav-link" href="/list-todos">Todos</a></li>
+			</ul>
+		</div>
+		<ul class="navbar-nav">
+			<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+		</ul>	
+	</nav>
+
+-------------------------------------------------------------------------------------------------------------------
+				
+	Changes in jsp for better readability and simplicity
+		
+		Making Jsp Fragments (jspf) - header.jspf, footer.jspf, navigation.jspf
+		
+		Changes in JSPs --
+		
+			At top adding 2 lines--
+			
+				<%@ include file = "common/header.jspf" %>
+				<%@ include file = "common/navigation.jspf" %>
+				<div class="container">
+				
+			At bottom adding 1 line 
+			
+				<%@ include file = "common/footer.jspf" %>
+			
+			The part which is moved to jspf will be removed from jsp files	
+	
+-------------------------------------------------------------------------------------------------------------------
+Including Spring Security in the project
+	
+	Remove login.jsp,Authenticationervice.java
+	Delete LoginController.java, and create WelcomeController.java
+	
+	In pom.xml, add the dependency
+	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
+	No changes in other JSPs
+	
+	In WelcomeController.java-
+	
+		@Controller
+		@SessionAttributes("name")
+		public class WelcomeController {
+			@RequestMapping(value="/",method = RequestMethod.GET)
+			public String gotoWelcomePage(ModelMap model) {
+				model.put("name","Rachit");
+				return "welcome";
+			}
+		}
+	
+	Creating package - com.practice.springboot.myfirstwebapp.security
+	Inside Create Class - SpringSecurityConfiguration
+	
+		@Configuration
+		public class SpringSecurityConfiguration {
+		//	Typlically, whenever we want to store Usernames and/or Password  we use LDAP or DB
+		//	To keep things simple, here we will use In Memory Configure
+		//	InMemoryUserDetailsManager
+		//	InMemoryUserDetailsManager(UserDetails... users)
+			@Bean
+			public InMemoryUserDetailsManager createUserDetailsManager() {
+				Function<String, String> passwordEncoder
+					= input -> passwordEncoder().encode(input);
+				UserDetails userDetails = User.builder()
+											.passwordEncoder(passwordEncoder)
+		//									.withDefaultPasswordEncoder()
+											.username("Rachit").password("qwerty")
+											.roles("USER", "ADMIN").build();
+				return new InMemoryUserDetailsManager(userDetails);
+			}
+		//	Creating a Bean for Password Encryption as .withDefaultPasswordEncoder() is deprecated method
+			@Bean
+			public PasswordEncoder passwordEncoder() {
+				return new BCryptPasswordEncoder();
+			}
+		}
+		
+		With Spring Security, we get (By default) Login(/login) and Logout(/logout) pages from it,
+		And if dont make a user, by default, Spring Security will generate a new password each time the server is started, and we
+		can get it from the console, the default user name in this case will be 'user'
+		
+-------------------------------------------------------------------------------------------------------------------
+Removing HardCoded UserNames and Adding New Users--
+
+	In WelcomeController.java		
+		@RequestMapping(value="/",method = RequestMethod.GET)
+		public String gotoWelcomePage(ModelMap model) {
+			model.put("name",getLoggedinUsername());
+			return "welcome";
+		}
+		private String getLoggedinUsername() {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); 
+			return authentication.getName();
+		}
+	
+	In TodoController.java
+	
+		Added -
+			private String getLoggedInUsername(ModelMap model) {
+				Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); 
+				return authentication.getName();	
+			}
+		
+		Updated -
+			To get Username - 
+				getLoggedInUsername(model)
+			Instead of -
+				(String) model.get("name")
+				
+			Reason -
+				We are assigning the Username to Session in WelcomeController.java
+				But if Someone directly accesses URL like 'list-todos' which is defined in TodoController/java
+				It will not work since the Username is not available from WelcomeController
+				Therefore, using the Spring Security to get Username, instead of ModelMap is a better approach
+	
+-------------------------------------------------------------------------------------------------------------------
+Connecting H2 Database
+
+	In pom.xml - 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency> 	
+	
+	In application.properties - 
+		spring.datasource.url=jdbc:h2:mem:testdb
+	
+	In SpringSecurityConfiguration.java
+		//	By default, if we have not logged in, and try to open any url Ex - welcome, listTodos, todo etc. it will all be redirected to 
+		//	login page, because all pages are being protected by spring security be default
+		//	To access H2 console, we will need to disable CSRF (Cross Site Request Forgery)
+		//	H2 Sites make use of Frames, and Spring Security by default, does not allow frames.So we need to make sure that frames are also 
+		//	allowed.To configure all of these things - 
+		
+		//	Defines a filter chain matched against every request
+		//	When we override SecurityFilterChain, we need to define entire chain again!!!!
+			@Bean
+			public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+				http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+		//		TO get withDefaults(), we need to do a static import, Ctrl+shift+t search 'customizer' and open interface - 
+		//		 with 'org.springframework.security.config' path and copy qualified name of the interface Customizer<T> 
+				http.formLogin(withDefaults());
+				
+				http.csrf().disable();
+				http.headers().frameOptions().disable();
+				
+		//		X-Frame-Options enabled ==> Frames cannot be used
+		//		h2-console uses frames ==>  Disable X-Frame-Options header
+				return http.build();
+				
+		//		Flow of this function-
+		//		http.authorizeHttpRequests - TO ensure all requests are authenticated
+		//		formLogin - If there is an unauthorized Request, then we are configuring formLogin(), so that we can show a page, where we
+		//		can collect the username and password
+		//		csrf().disable() - Disabling CSRF
+		//		headers().frameOptions().disable() - and enabling use of frames on our application
+			}
+	
+-------------------------------------------------------------------------------------------------------------------
+Shifting From Static List to H2 DB
+
+	In application.properties-
+	
+		#spring.h2.console.enabled=true
+		spring.datasource.url=jdbc:h2:mem:testdb
+		
+		#Below line is for the Compilation error which is occurring from the insert query in the data.sql file, saying no Todo Table 
+		#present. As the data.sql file is getting executed before the creation of the table
+		spring.jpa.defer--datasource-initialization=true
+		
+		#to see all the queries which are executed in the Console
+		spring.jpa.show-sql=true	
+	
+	Create a copy of TodoController.java(and remove @Controller annotation from it) and rename to -TodoController.java 
+	
+		private TodoRepository todoRepository;
+
+		public TodoControllerJpa(TodoRepository todoRepository) {
+			super();
+			this.todoRepository=todoRepository;
+		}
+		
+		--
+		@RequestMapping("list-todos")
+		public String listAllTodos(ModelMap model) {
+					
+			List<Todo> todos = 	todoRepository.findByUsername(getLoggedInUsername(model));
+			
+		--
+		@RequestMapping(value = "add-todo", method = RequestMethod.POST)
+		public String addNewTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+			
+			if (result.hasErrors()) {
+				return "todo";
+			}
+	//		todoRepository.save(new Todo(0,getLoggedInUsername(model), todo.getDescription(), todo.getTargetDate(), todo.isDone()));
+	//		or we can do -
+			todo.setUsername(getLoggedInUsername(model));
+			todoRepository.save(todo);
+			
+		--
+		@RequestMapping("delete-todo")
+		public String deleteTodo(@RequestParam int id) {
+			todoRepository.deleteById(id);
+			return "redirect:list-todos";
+		}
+		
+		@RequestMapping(value="update-todo",method=RequestMethod.GET)
+		public String showUpdateTodoPage(ModelMap model,@RequestParam int id) {
+			Todo todo= todoRepository.findById(id).get();
+			
+		--
+		@RequestMapping(value = "update-todo", method = RequestMethod.POST)
+		public String updateTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+			
+			if (result.hasErrors()) {
+				return "todo";
+			}
+			todo.setUsername(getLoggedInUsername(model));
+			todoRepository.save(todo);
+	
+-------------------------------------------------------------------------------------------------------------------
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 					 
 

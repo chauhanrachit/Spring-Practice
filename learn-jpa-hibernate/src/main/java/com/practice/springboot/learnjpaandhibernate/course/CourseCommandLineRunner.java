@@ -4,9 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import com.practice.springboot.learnjpaandhibernate.course.Course;
-import com.practice.springboot.learnjpaandhibernate.course.jdbc.CourseJdbcRepository;
-import com.practice.springboot.learnjpaandhibernate.course.jpa.CourseJpaRepository;
 import com.practice.springboot.learnjpaandhibernate.course.springdatajpa.CourseSpringDataJpaRepository;
 
 @Component
