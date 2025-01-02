@@ -52,6 +52,7 @@ public class SpringSecurityConfiguration {
 
 //	Defines a filter chain matched against every request
 //	When we override SecurityFilterChain, we need to define entire chain again!!!!
+	@SuppressWarnings("removal")//not needed, just added because warning was not looking good
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
