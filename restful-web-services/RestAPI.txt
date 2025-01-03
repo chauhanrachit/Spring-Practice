@@ -152,8 +152,25 @@ Advanced REST API Features
 	Dynamic Filtering
 	Monitoring
 
+---------------------------------------------------------------------------------------------------------------------------
+In Local Machine - We run java class to launch application
 
+In Prod Env - We run Java JAR file
 
+SpringBoot DevTools is disabled when you run a Java JAR file!
+
+So For UserNotFolundException, the commenting of DevTools is only needed here for our convenience and easy understanding
+
+	<!--	Commented because too much unneccesary data was shown in frontend in case of UserNotFoundExcetion
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		--> 
+
+---------------------------------------------------------------------------------------------------------------------------
 
 
 
