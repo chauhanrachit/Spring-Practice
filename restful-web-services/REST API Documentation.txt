@@ -1,0 +1,475 @@
+Advanced REST API Features
+	
+	Documentation
+	Content Negotiation
+	Internationalization - i18n
+	Versioning
+	HATEOAS
+	Static Filtering
+	Dynamic Filtering
+	Monitoring
+	
+-------------------------------------------------------------------------------------------------------------
+
+01. REST API Documentation
+
+	Your REST API consumers need to understand your REST API:
+		Resources
+		Actions
+		Request/Response Structure (Constraints/Validations)
+		
+	Challenges:
+		Accuracy: How do you ensure that your documentation is upto date and correct?
+		Consistency: You might have 100s of REST API in an enterprise.
+		How do you ensure consistency?
+		
+	Options:
+		1: Manually Maintain Documentation
+		Additional eort to keep it in sync with code
+		2: Generate from code
+
+------------------------------------------------------------------------------------------------------------------
+REST API Documentation - Swagger and Open API
+
+	Quick overview:
+		2011: Swagger Specification and Swagger Tools were introduced.
+		
+		2016: Open API Specification created based on Swagger Spec.
+			Swagger Tools (ex:Swagger UI) continue to exist.
+			
+		OpenAPI Specification: Standard, language-agnostic interface
+			Discover and understand REST API
+			Earlier called Swagger Specification
+			
+		Swagger UI: Visualize and interact with your REST API
+			Can be generated from your OpenAPI Specification
+			
+------------------------------------------------------------------------------------------------------------------
+			
+To Automate the generation of API Documentation 
+	
+	google springdoc openapi --open 1st option -- springdoc.org
+							 --open the github page as well  -- github.com/springdoc/springdoc-openapi
+	
+	What we need is artifact -- springdoc-openapi-starter-webmvc-ui
+	
+	In pom.xml
+		
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.7.0</version>
+		</dependency>						 
+	
+	Then in chrome  -- http://localhost:8080/swagger-ui.html
+		
+		Here, Swagger Specifications will be shown
+		
+		URL -- http://localhost:8080/v3/api-docs
+			This will take us to openApi specification for the API
+			
+------------------------------------------------------------------------------------------------------------------
+	
+02. Content Negotiation
+	
+	Same Resource - Same URI
+		HOWEVER Dierent Representations are possible
+			Example: Dierent Content Type - XML or JSON or ..
+			Example: Dierent Language - English or Dutch or ..
+			
+	How can a consumer tell the REST API provider what they want?
+		Content Negotiation
+		
+	Example: Accept header (MIME types - application/xml, application/json, ..)
+	
+	Example: Accept-Language header (en, nl, fr, ..)
+	
+	For - Accept header (MIME types - application/xml, application/json, ..)
+	
+		In pom.xml, add dependency -
+			<dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-xml</artifactId>
+			</dependency>
+		
+		In Postman- 
+			In headers, add -
+				Key - Accept		Value - application/xml
+		
+		
+	The xml representation and the swagger documentation can cause a few problems, when we are trying out the 
+	other advanced features. So, we will be commenting them out.
+		<!-- -->
+	
+------------------------------------------------------------------------------------------------------------------
+	
+03. Internationalization - i18n
+
+	Your REST API might have consumers from around the world
+	
+	How do you customize it to users around the world?
+		Internationalization - i18n
+		
+	Typically HTTP Request Header - Accept-Language is used 
+		Accept-Language - indicates natural language and locale that the consumer prefers
+		Example: en - English (Good Morning)
+		Example: nl - Dutch (Goedemorgen)
+		Example: fr - French (Bonjour)
+	
+	
+	Changes in HelloWorldController.java - 
+	
+		private MessageSource messageSource;
+	
+		public HelloWorldController(MessageSource messageSource) {
+			this.messageSource = messageSource;
+		}
+		
+		@GetMapping(path = "/hello-world-internationalized")
+		public String helloWorldInternationalized() {
+	
+			Locale locale = LocaleContextHolder.getLocale();
+	//		Return the Locale associated with the current thread, if any,or the system default Locale otherwise. 
+	//		This is effectively a replacement for java.util.Locale.getDefault(),
+	//		able to optionally respect a user-level Locale setting. 
+			System.out.println("Current Locale: " + locale);
+			return messageSource.getMessage("good.morning.message", null, "Default Message", locale);
+	
+			// return "Hello World" ;
+	
+	//		1: Define these messages somewhere, so that we can pick them up   //good.morning.message
+	//		2: Write the code to pick those values up
+	//		Example: en - English (Good Morning)
+	//		Example: nl - Dutch (Goedemorgen)
+	//		Example: fr - French (Bonjour)
+	//		Example: de - Deutsh (Guten Morgen)
+		}
+	
+	
+	Create messages.properties, messages_de.properties, messages_fr.properties, messages_nl.properties 
+	
+		which includes - good.morning.message=Good Morning 
+		Good Moring is message which will be different for all properties files.
+		
+	These files are to be made where application.properties file is.
+	
+------------------------------------------------------------------------------------------------------------------
+	
+04. Versioning REST API
+	
+	You have built an amazing REST API
+		You have 100s of consumers
+		
+		You need to implement a breaking change
+			Example: Split name into firstName and lastName
+			
+	SOLUTION: Versioning REST API
+		Variety of options
+			URL
+			Request Parameter
+			Header
+			Media Type
+			
+		No Clear Winner!
+
+		=================================================================================================
+	
+	Versioning REST API - Options
+
+		=================================================================================================	
+		URI Versioning - Twitter
+			http://localhost:8080/v1/person
+			http://localhost:8080/v2/person
+			
+			For this, we will create versioning package, inside it will be VersioningPersonController.java
+				VersioningPersonController.java - 
+					
+					@RestController
+					public class VersioningPersonController {
+						@GetMapping("/v1/person")
+						public PersonV1 getFirstVersionOfPerson() {
+							return new PersonV1("Bob Charlie");
+						}
+						@GetMapping("/v2/person")
+						public PersonV2 getSecondVersionOfPerson() {
+							return new PersonV2(new Name("Rachit","Chauhan"));
+						}
+					}  
+				PersonV1.java - 
+					private String name;
+					
+					Constructor, Getters & toString()
+					
+				PersonV2.java - 	
+					private Name name;
+					
+					Constructor, Getters & toString()
+					
+				Name.java - 
+					private String firstName;
+					private String seondName;
+					
+					Constructor, Getters & toString()
+		=================================================================================================
+				
+		Request Parameter versioning - Amazon
+			http://localhost:8080/person?version=1
+			http://localhost:8080/person?version=2
+		
+			In VersioningPersonController.java - 
+				
+				@GetMapping(path = "/person", params = "version=1")
+				public PersonV1 getFirstVersionOfPersonRequestParameter() {
+					return new PersonV1("Bob Charlie");
+				}
+				
+				@GetMapping(path = "/person", params = "version=2")
+				public PersonV2 getSecondVersionOfPersonRequestParameter() {
+					return new PersonV2(new Name("Rachit", "Chauhan"));
+				}
+				
+		=================================================================================================
+		
+		(Custom) headers versioning - Microsoft
+			SAME-URL headers=[X-API-VERSION=1]
+			SAME-URL headers=[X-API-VERSION=2]
+			
+			In VersioningPersonController.java - 	
+				
+				@GetMapping(path = "/person/header", headers = "X-API-VERSION=1")
+				public PersonV1 getFirstVersionOfPersonRequestHeader() {
+					return new PersonV1("Bob Charlie");
+				}
+				
+				@GetMapping(path = "/person/header", headers = "X-API-VERSION=2")
+				public PersonV2 getSecondVersionOfPersonRequestHeader() {
+					return new PersonV2(new Name("Rachit", "Chauhan"));
+				}
+
+		=================================================================================================
+		
+		Media type versioning (a.k.a “content negotiation” or “accept header”) - GitHub
+			SAME-URL produces=application/vnd.company.app-v1+json
+			SAME-URL produces=application/vnd.company.app-v2+json
+			
+			In VersioningPersonController.java - 	
+				
+				@GetMapping(path = "/person/accept", produces = "application/vnd.company.app-v1+json")
+				public PersonV1 getFirstVersionOfPersonAcceptHeader() {
+					return new PersonV1("Bob Charlie");
+				}
+				
+				@GetMapping(path = "/person/accept", produces = "application/vnd.company.app-v2+json")
+				public PersonV2 getSecondVersionOfPersonAcceptHeader() {
+					return new PersonV2(new Name("Rachit", "Chauhan"));
+				}	
+				
+		=================================================================================================
+				
+	Versioning REST API - Factors
+	
+		Factors to consider
+			URI Pollution
+			Misuse of HTTP Headers
+			Caching
+			Can we execute the request on the browser?
+			API Documentation
+			Summary: No Perfect Solution
+			
+		Recommended
+			Think about versioning even before you need it!
+			One Enterprise - One Versioning Approach
+	
+------------------------------------------------------------------------------------------------------------------
+	
+05. HATEOAS
+
+	Hypermedia as the Engine of Application State (HATEOAS)
+	
+	Websites allow you to:
+		See Data AND Perform Actions (using links)
+		
+	How about enhancing your REST API to tell consumers how to perform subsequent actions?
+		HATEOAS
+		
+	Implementation Options:
+		1: Custom Format and Implementation
+			Diicult to maintain
+			
+		2: Use Standard Implementation
+			HAL (JSON Hypertext Application Language): Simple format that gives a consistent and easy way to hyperlink 
+			between resources in your API
+			
+			Spring HATEOAS: Generate HAL responses with hyperlinks to resources	
+			
+			
+	In UserResource.java - 
+		
+		import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+		//Static import to be done manually by going to the class WebMvcLinkBuilder
+		
+		//We want to add the link //http://localhost:8080/users
+		//To create the response with data and this link, we need to use -
+		//EntityModel
+		//WebMvcLinkBuilder
+		//What we want to do is add a few links in the response as part of our User Bean , 
+		//we don't want to make change in the structure of every bean
+		
+		@GetMapping("/users/{id}")
+		public EntityModel<User> retrieveUser(@PathVariable int id){
+			User user = service.findOne(id);
+			if(user==null)
+				throw new UserNotFoundException("id:"+id);
+			
+			EntityModel<User> entityModel = EntityModel.of(user);
+			
+			//here we want to add a link to the retrieveAllUsers() method, we can hard code the "/users" URL, 
+			//but if the URL changes at s later point in time, we need to change the link as well, 
+			//that is why instead of hard coding URL, we want to get the link to the specific method 
+			//and we will use the link and return it back
+			
+			WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+			
+			//we are using the WebMvc link builder link to method to create a link pointing to the controller method.
+			//The controller method we are pointing to is retrieveAllUsers()
+			
+			entityModel.add(link.withRel("all-users"));
+			return entityModel;
+		}
+				
+------------------------------------------------------------------------------------------------------------------
+	
+05. Static Filtering
+	
+	In filtering package, SomeBean.java
+	
+		package com.practice.rest.webservices.restfulwebservices.filtering;
+		
+		//@JsonIgnoreProperties("field1")
+		//@JsonIgnoreProperties({"field1","field2"})	//We can define JSONIgonre at class levels as well, to ignore a field
+		public class SomeBean {
+		
+			private String field1;
+			
+			//@JsonIgnore	//To igoore this field from the JSON response of this class's object
+			private String field2;
+			
+			private String field3;
+			
+			Constructor, getters & to String method 
+		}
+		
+	In filtering package, FilteringController.java(RestController)
+
+			@GetMapping("/filtering")
+			public SomeBean filtering() {
+				return new SomeBean("value1","value2","value3");
+			}
+			@GetMapping("/filtering-list")
+			public List<SomeBean> filteringList() {
+				return Arrays.asList(new SomeBean("value1","value2","value3"),
+						new SomeBean("value11","value22","value33"),
+						new SomeBean("value111","value222","value333"));
+			}
+			
+------------------------------------------------------------------------------------------------------------------
+	
+05. Dynamic Filtering
+
+	 In SomeBean.java, add the class annotation -- 	@JsonFilter("SomeBeanFilter")
+	 
+	 In FilteringController.java -- 
+	 	
+	 	@GetMapping("/filtering")
+		public MappingJacksonValue filtering() {
+			//When we want to do filtering according to the API, we cant define the filtering logic directly on the bean, 
+			//we have to define the logic to filter in the rest API, for which we use -
+			//MappingJacksonValue
+			
+			SomeBean someBean = new SomeBean("value1","value2","value3");
+			MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(someBean);
+			
+			SimpleBeanPropertyFilter filter =SimpleBeanPropertyFilter.filterOutAllExcept("field1","field3");
+			FilterProvider filters = new SimpleFilterProvider().addFilter("SomeBeanFilter", filter);
+			mappingJacksonValue.setFilters(filters);
+			
+			return mappingJacksonValue;
+		}
+		
+		@GetMapping("/filtering-list")
+		public MappingJacksonValue filteringList() {
+	
+			List<SomeBean> beanList = Arrays.asList( new SomeBean("value1","value2","value3"),
+					new SomeBean("value11","value22","value33"),new SomeBean("value111","value222","value333"));
+			
+			MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(beanList);
+			
+			SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("field2","field3");
+			FilterProvider filters = new SimpleFilterProvider().addFilter("SomeBeanFilter", filter);
+			mappingJacksonValue.setFilters(filters);
+			
+			return mappingJacksonValue;
+		}	
+	
+	Better method of the above would be - 
+	
+		@GetMapping("/filtering")
+		public MappingJacksonValue filtering() {
+			SomeBean someBean = new SomeBean("value1","value2","value3");
+			MappingJacksonValue mappingJacksonValue = extracted(someBean,new String[]{"field1","field3"});
+			return mappingJacksonValue;
+		}
+		@GetMapping("/filtering-list")
+		public MappingJacksonValue filteringList() {
+			List<SomeBean> beanList = Arrays.asList( new SomeBean("value1","value2","value3"),
+					new SomeBean("value11","value22","value33"),new SomeBean("value111","value222","value333"));
+			MappingJacksonValue mappingJacksonValue = extracted(beanList,new String[]{"field2","field3"});
+			return mappingJacksonValue;
+		}
+		private MappingJacksonValue extracted(Object someBean, String[] arr) {
+			MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(someBean);
+			SimpleBeanPropertyFilter filter =SimpleBeanPropertyFilter.filterOutAllExcept(arr);
+			FilterProvider filters = new SimpleFilterProvider().addFilter("SomeBeanFilter", filter);
+			mappingJacksonValue.setFilters(filters);
+			return mappingJacksonValue;
+		}
+		
+------------------------------------------------------------------------------------------------------------------
+	
+06. Monitoring
+
+	Get Production-ready with Spring Boot Actuator
+	
+		Spring Boot Actuator: Provides Spring Boot’s production-ready features
+			Monitor and manage your application in your production
+			
+		Spring Boot Starter Actuator: Starter to add Spring Boot Actuator to your application
+			spring-boot-starter-actuator
+			
+		Provides a number of endpoints:
+			beans - Complete list of Spring beans in your app
+			health - Application health information
+			metrics - Application metrics
+			mappings - Details around Request Mappings
+			etc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

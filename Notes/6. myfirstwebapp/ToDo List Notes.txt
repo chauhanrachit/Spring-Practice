@@ -1,0 +1,785 @@
+
+In SayHelloController.java-
+
+@Controller							//To tell spring that this is a bean, and this is a web-ui related component 
+@RequestMapping("say-hello")		//used to map with the specified parameters , which comes after the main component of the URl
+@ResponseBody						//returns whatever is returned by the method, as is to the browser
+
+--------------------------------------------------------------------------------------------------------------------------
+
+For Using View(In this case JSP)-
+
+	@RequestMapping("say-hello-jsp")
+	//@ResponseBody  //this will return whatever is written directly. So, as we want to redirect to a view (JSP), we will remove it.
+	public String sayHelloJsp() {
+		return "sayHello";
+	}
+
+Usual path of JSP files
+myfirstwebapp/src/main/resources/META-INF/resources/WEB-INF/jsp/
+
+Entries in application.properties(#-comment) - 
+
+	#spring.mvc.view.prefix=/src/main/resources/META-INF/resources/WEB-INF/jsp/
+	#Spring knows the path upto META-INF/resources, so the path we have to give becomes - 
+	spring.mvc.view.prefix=/WEB-INF/jsp/
+	spring.mvc.view.suffix=.jsp
+	
+	--
+	#added to get logs of org.springframework level 
+	logging.level.org.springframework=debug
+	logging.level.com.practice.springboot.myfirstwebapp=debug
+	
+	#lggoing levels - trace>debug>info>warn>error
+	
+	
+	In Java file for logging with slf4j Logger, Ex -
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
+	logger.info("Request Param is - {}", name);		//{} - will get replaced by the variable name
+	
+--------------------------------------------------------------------------------------------------------------------------
+
+
+	@RequestMapping("login")
+	public String gotoLoginPage(@RequestParam String name, ModelMap model) {
+		//ModelMap is used to pass what is received from Requestparam to the view (JSP)
+		model.put("name", name);
+		System.out.println("Request Param is - " + name);
+		return "login";
+	}
+	
+	ModelMap - 	//ModelMap is used to pass what is received from Requestparam to the view (JSP)
+		Ex -  	// putting a value in ModelMap -- model.put("name", name);
+	@RequestParam  - Used to receive parameters from the URL of the browser
+		Ex - 	//http://localhost:8080/login?name=Rachit
+		
+		
+	To access what is passed in the model map in JSP, Expression Language(EL) is used
+	
+	Ex- 
+	
+	<html>
+		<head>
+			<title>Login Page</title>
+		</head>
+		<body>
+			Welcome to the Login Page ${name}!
+		</body>
+	</html>
+	
+--------------------------------------------------------------------------------------------------------------------------
+	
+	//login
+	//GET,POST both are being handled by this method, if we want it to only handle GET method---
+	@RequestMapping(value="login",method = RequestMethod.GET)
+	public String gotoLoginPage() {
+		//model.put("name", name);
+		return "login";
+	}
+	
+	@RequestMapping(value="login",method = RequestMethod.POST)
+	public String gotoWelcomePage(@RequestParam String name,@RequestParam String password, ModelMap model) {
+		model.put("name", name);
+		model.put("password", password);
+		return "welcome";
+	}
+	
+	--
+	
+	changes in body of login.jsp
+	
+	<body>
+		Welcome to the Login Page !
+		<form method ="post">
+			Name: <input type ="text" name="name">
+			Password: <input type ="password" name="password">
+			<input type = "submit">
+		</form>
+	</body>
+	
+	welcome.jsp -
+	
+	<html>
+		<head>
+			<title>Welcome Page</title>
+		</head>
+		<body>
+			<div>Welcome to Welcome Page !</div>
+			<div>Your Name 	   is -  ${name} 	 !</div>
+			<div>Your Password is -  ${password} !</div>		
+		</body>
+	</html>
+--------------------------------------------------------------------------------------------------------------------------
+	
+Setting Up Todo class -
+
+	Todo.java
+	
+		private int id;
+		private String username;
+		private String description;
+		private LocalDate targateDate;
+		private boolean done;
+		
+		main variables of Todo Application
+		
+	TodoService.java
+		
+		Creating Static list of Todo.java, and creating Static Block to initialize Static Variable
+		
+		public List<Todo> findByUsername ( String username){
+			return todos;
+		}
+		
+	TodoController.java
+	
+		private TodoService todoService;
+		public TodoController(TodoService todoService) {
+			super();
+			this.todoService = todoService;
+		}
+		@RequestMapping("list-todos")
+		public String listAllTodos(ModelMap model) {
+			List<Todo> todos=todoService.findByUsername("Rachit");
+			model.addAttribute("todos",todos);	
+			return "listTodos";
+		}
+		
+		listTodos.JSP
+		
+		<html>
+			<head>
+				<title>List Todos Page</title>
+			</head>
+			<body>
+				<div>Welcome to Welcome Page !</div>
+				<div>Your Todos are   ${todos} 	 !</div>
+				<!--<div>Your Password is -  ${password} !</div> -->	
+			</body>
+		</html>
+		
+
+	DIfference Between Request, Model, Session
+	
+		Request	- 	The data entered by the user (Visible in the Payload of Network tab of Inspect), is only valid for that specific 
+				  	request, i.e., after that request the data does not move forward in the payload, it is removed from the payload 
+				  	of the next REQUEST.
+				  	
+		Model	-	Whenever a value is put in model, it is only available in the scope of that request.
+					Ex - If we are putting data in a model and showing it to the user through the Jsp, and if the user is sending 
+					any request, and a new jsp is opened, that data which was shown through model, will not be available.
+					
+		Session	-	@SessionAttributes("name")
+					Written above the class, it makes the field specified across the server, but in which ever class this field is 
+					required, @SessionAttributes("name") annotation will need to be specified for that class as well.
+					
+					
+----------------------------------------------------------------------------------------------------------------------------------
+Added in pom.xml for JSPs --
+
+		<dependency>
+			<groupId>jakarta.servlet.jsp.jstl</groupId>
+			<artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.glassfish.web</groupId>
+		    <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+		</dependency>
+		
+	Added in jsp files - 
+		
+		<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+		
+		Using the library --
+		
+		<table>
+			<thead>
+				<tr>
+					<th> Id </th>
+					<th> Description </th>
+					<th> Targate Date </th>
+					<th> Is Done ? </th>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach items = "${todos}" var = "todo">
+					<tr>
+						<td>${todo.id}</td>
+						<td>${todo.description}</td>
+						<td>${todo.targateDate}</td>
+						<td>${todo.done}</td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+		
+-------------------------------------------------------------------------------------------------------------------
+
+Setting Up BootStrap for the project - 
+
+	In pom.xml add the dependencies - 
+	
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>5.1.3</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>jquery</artifactId>
+			<version>3.6.0</version>
+		</dependency>
+		
+	In the Jsp file, CSS is added in the beginning, and JavaScript is added at the end of the body  -
+	
+		<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+		<html>
+			<head>
+				<link href="webjars/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet" >
+				<title>List Todos Page</title>
+			</head>
+			-
+			-
+			-
+				<script src="webjars/bootstrap/5.1.3/js/bootstrap.min.js"></script>
+				<script src="webjars/jquery/3.6.0/jquery.min.js"></script>
+			</body>
+		</html>
+		
+		The path in src and href is taken from the maven dependencies, 
+			
+			Search bootstrap>META-INF>resources>webjars>bootstrap>5.1.3>css>bootstrap.min.css
+			
+			Search bootstrap>META-INF>resources>webjars>bootstrap>5.1.3>js>bootstrap.min.js
+
+			Search    jquery>META-INF>resources>jquery>bootstrap>3.6.0>jquery.min.js
+			
+			Copy the qualified name 
+			
+-------------------------------------------------------------------------------------------------------------------
+For adding a new Todo to the currently Static List - 
+
+	Create a Button in listTodos.jsp -- <a href="add-todo" class = "btn btn-success">Add Todo</a> 
+	
+	Creating a function in TodoController, to open a new JSP page for URL path -- "add-todo"  - 
+		@RequestMapping(value="add-todo",method =RequestMethod.GET )
+			public String showNewTodoPage() {
+				return "todo";
+			}
+			
+	Creating The JSP todo -
+		<h1>Enter Todo Details</h1>
+		<form method = "post">
+				Description:<input type ="text" name="description"/>
+				<input type="submit" class = "btn btn-success">
+		</form>	
+		
+	Creating a function in TodoController, to get the data from above JSP to TodoController.java -
+		@RequestMapping(value="add-todo",method =RequestMethod.POST )
+		public String addNewTodo(ModelMap model, @RequestParam String description) {
+			todoService.addTodo((String)model.get("name"),description,LocalDate.now().plusYears(1),false);
+			return "redirect:list-todos";
+		}
+		
+	Creating a function in TodoService, to get the above data in the Todo List -
+		public void addTodo ( String username, String description, LocalDate targateDate, boolean done){
+			todos.addLast(new Todo(++todosCount,username,description,targateDate,done));
+		} 
+			
+-------------------------------------------------------------------------------------------------------------------
+
+Using Command Beans to Implement New Todo Page Validations
+
+	In pom.xml -
+	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+	In todo.jsp --
+		
+		Add the Spring Tag lib (It is used to access spring tags in JSP)
+								(In google, Search - 'spring form tag library'  , 
+								In docs.spring.io- '18. View technologies' 
+								inside search - 'form tag' and go to - '18.2.4 Using Spring's form tag library' 
+								and copy it from there)
+		<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+		
+		<form:form method = "post" modelAttribute="todo">
+			Description:<form:input type ="text" path="description" required="required"/>
+						<form:errors path="description" cssClass="text-warning"/>
+						<form:input type ="hidden" path="id"	/>
+						<form:input type ="hidden" path="done"	/>
+			<input type="submit" class = "btn btn-success">
+		</form:form>
+		
+		Using form: tag from spring library to access model todo here.So, we can do 2 way binding i.e.- get data from form and 
+		send data data to form, it can be default values,validations or/ and error meesages as well.
+		
+		cssClass of Spring Library is just like Class tag of CSS library, but for Spring
+		
+		In TodoController.java
+		
+			@RequestMapping(value = "add-todo", method = RequestMethod.GET)
+			public String showNewTodoPage(ModelMap model) {
+				Todo todo = new Todo(0, (String) model.get("name"), null, LocalDate.now(), false); 
+				model.put("todo", todo);
+				return "todo";
+			}
+			//setting the default values which will be shown to front end. It is mandatory here to put an object of Todo.class
+			//in the model so the JSP can access it, as we are mapping the model with the jsp inside it at GET requestMethod			
+			
+			@RequestMapping(value = "add-todo", method = RequestMethod.POST)
+			public String addNewTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+				if (result.hasErrors()) 
+					return "todo";
+				todoService.addTodo((String) model.get("name"), todo.getDescription(), LocalDate.now().plusYears(1), false);
+				return "redirect:list-todos";
+			}
+			//Doing a Request Mapping for each parameter is not a feasible thing. So an entire class is mapped where the variables
+			//which will be accessed by the JSP are defined, in our case it is Todo.class which is kind of our db here.
+			//@Valid Todo todo - Here @Valid annotation is used to check that the validations defined in class Todo are fulfilled
+			//BindingResult result - It is used to get the errors from the Validations on the front end
+		
+		
+		In Todo.java -
+			
+			@Size(min=10,message = "Enter atleast 10 Characters")
+			private String description;
+			
+			@FutureOrPresent(message = "Enter A Valid Present or Future Data")
+			private LocalDate targateDate;
+		//The above annotations are validation constraints
+		
+-------------------------------------------------------------------------------------------------------------------
+Implementing Delete Todo Feature -
+
+	In TodoService.java adding the following function
+	
+		public void deleteById (int id){
+			//todo.getId()==id
+			// todo ->todo.getId()==id
+			Predicate<? super Todo> predicate = todo ->todo.getId()==id;
+			todos.removeIf(predicate);
+		}
+		
+	In listTodos.jsp
+		
+		adding an empty header in table 
+			<th></th>
+		
+		adding a row in body of the table
+			<td><a href="delete-todo?id=${todo.id}" class = "btn btn-warning">DELETE</a></td>
+		
+	In TodoController.java
+	
+		@RequestMapping("delete-todo")
+		public String deleteTodo(@RequestParam int id) {
+			todoService.deleteById(id);
+			return "redirect:list-todos";
+		}	
+		
+-------------------------------------------------------------------------------------------------------------------
+Implementing Update Todo Feature -
+
+	In TodoService.java adding the following function
+		
+		public Todo findById(int id) {
+			Predicate<? super Todo> predicate = todo ->todo.getId()==id;
+			return todos.stream().filter(predicate).findFirst().get();
+		}
+		public void updateTodo(Todo todo) {
+			deleteById(todo.getId());
+			todos.add(todo);
+		}
+		
+	In TodoController.java
+	
+		@RequestMapping(value="update-todo",method=RequestMethod.GET)
+		public String showUpdateTodoPage(ModelMap model,@RequestParam int id) {
+			Todo todo= todoService.findById(id);
+			model.addAttribute("todo", todo);
+			return "todo";
+		}
+		
+		@RequestMapping(value = "update-todo", method = RequestMethod.POST)
+		public String updateTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+			
+			if (result.hasErrors()) {
+				return "todo";
+			}
+			todo.setUsername((String)model.get("name"));
+			todoService.updateTodo(todo);
+			return "redirect:list-todos";
+		}
+		
+	In listTodos.jsp
+		
+		adding an empty header in table 
+			<th></th>
+		
+		adding a row in body of the table
+			<td><a href="update-todo?id=${todo.id}" class = "btn btn-success">Update</a></td>	
+
+-------------------------------------------------------------------------------------------------------------------
+Adding targetDate to todo page
+
+	in pom.xml
+	
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap-datepicker</artifactId>
+			<version>1.9.0</version>
+		</dependency>
+		
+	in todo.jsp 
+		
+		In header 
+		<link href="webjars/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.standalone.min.css" rel="stylesheet" >
+		
+		In body, around the end where all scripts are called 
+			<script type="text/javascript">
+				$('#targetDate').datepicker({
+				    format: 'dd-mm-yyyy'
+				});
+			</script>	
+			
+	in application.properties 
+		
+		spring.mvc.format.date=dd-MM-yyyy
+		This property is added for a default date format throughout application
+				
+-------------------------------------------------------------------------------------------------------------------
+
+Adding a navigation Bar
+
+	IN the header part of the JSP, add - 
+	
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-3 p-1">
+		<a class="navbar-brand m-1" href="/">Todo Application</a>
+		<div class="collapse navbar-collapse">
+			<ul class="navbar-nav">
+				<li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+				<li class="nav-item"><a class="nav-link" href="/list-todos">Todos</a></li>
+			</ul>
+		</div>
+		<ul class="navbar-nav">
+			<li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+		</ul>	
+	</nav>
+
+-------------------------------------------------------------------------------------------------------------------
+				
+	Changes in jsp for better readability and simplicity
+		
+		Making Jsp Fragments (jspf) - header.jspf, footer.jspf, navigation.jspf
+		
+		Changes in JSPs --
+		
+			At top adding 2 lines--
+			
+				<%@ include file = "common/header.jspf" %>
+				<%@ include file = "common/navigation.jspf" %>
+				<div class="container">
+				
+			At bottom adding 1 line 
+			
+				<%@ include file = "common/footer.jspf" %>
+			
+			The part which is moved to jspf will be removed from jsp files	
+	
+-------------------------------------------------------------------------------------------------------------------
+Including Spring Security in the project
+	
+	Remove login.jsp,Authenticationervice.java
+	Delete LoginController.java, and create WelcomeController.java
+	
+	In pom.xml, add the dependency
+	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		
+	No changes in other JSPs
+	
+	In WelcomeController.java-
+	
+		@Controller
+		@SessionAttributes("name")
+		public class WelcomeController {
+			@RequestMapping(value="/",method = RequestMethod.GET)
+			public String gotoWelcomePage(ModelMap model) {
+				model.put("name","Rachit");
+				return "welcome";
+			}
+		}
+	
+	Creating package - com.practice.springboot.myfirstwebapp.security
+	Inside Create Class - SpringSecurityConfiguration
+	
+		@Configuration
+		public class SpringSecurityConfiguration {
+		//	Typlically, whenever we want to store Usernames and/or Password  we use LDAP or DB
+		//	To keep things simple, here we will use In Memory Configure
+		//	InMemoryUserDetailsManager
+		//	InMemoryUserDetailsManager(UserDetails... users)
+			@Bean
+			public InMemoryUserDetailsManager createUserDetailsManager() {
+				Function<String, String> passwordEncoder
+					= input -> passwordEncoder().encode(input);
+				UserDetails userDetails = User.builder()
+											.passwordEncoder(passwordEncoder)
+		//									.withDefaultPasswordEncoder()
+											.username("Rachit").password("qwerty")
+											.roles("USER", "ADMIN").build();
+				return new InMemoryUserDetailsManager(userDetails);
+			}
+		//	Creating a Bean for Password Encryption as .withDefaultPasswordEncoder() is deprecated method
+			@Bean
+			public PasswordEncoder passwordEncoder() {
+				return new BCryptPasswordEncoder();
+			}
+		}
+		
+		With Spring Security, we get (By default) Login(/login) and Logout(/logout) pages from it,
+		And if dont make a user, by default, Spring Security will generate a new password each time the server is started, and we
+		can get it from the console, the default user name in this case will be 'user'
+		
+-------------------------------------------------------------------------------------------------------------------
+Removing HardCoded UserNames and Adding New Users--
+
+	In WelcomeController.java		
+		@RequestMapping(value="/",method = RequestMethod.GET)
+		public String gotoWelcomePage(ModelMap model) {
+			model.put("name",getLoggedinUsername());
+			return "welcome";
+		}
+		private String getLoggedinUsername() {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); 
+			return authentication.getName();
+		}
+	
+	In TodoController.java
+	
+		Added -
+			private String getLoggedInUsername(ModelMap model) {
+				Authentication authentication = SecurityContextHolder.getContext().getAuthentication(); 
+				return authentication.getName();	
+			}
+		
+		Updated -
+			To get Username - 
+				getLoggedInUsername(model)
+			Instead of -
+				(String) model.get("name")
+				
+			Reason -
+				We are assigning the Username to Session in WelcomeController.java
+				But if Someone directly accesses URL like 'list-todos' which is defined in TodoController/java
+				It will not work since the Username is not available from WelcomeController
+				Therefore, using the Spring Security to get Username, instead of ModelMap is a better approach
+	
+-------------------------------------------------------------------------------------------------------------------
+Connecting H2 Database
+
+	In pom.xml - 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency> 	
+	
+	In application.properties - 
+		spring.datasource.url=jdbc:h2:mem:testdb
+	
+	In SpringSecurityConfiguration.java
+		//	By default, if we have not logged in, and try to open any url Ex - welcome, listTodos, todo etc. it will all be redirected to 
+		//	login page, because all pages are being protected by spring security be default
+		//	To access H2 console, we will need to disable CSRF (Cross Site Request Forgery)
+		//	H2 Sites make use of Frames, and Spring Security by default, does not allow frames.So we need to make sure that frames are also 
+		//	allowed.To configure all of these things - 
+		
+		//	Defines a filter chain matched against every request
+		//	When we override SecurityFilterChain, we need to define entire chain again!!!!
+			@Bean
+			public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+				http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
+		//		TO get withDefaults(), we need to do a static import, Ctrl+shift+t search 'customizer' and open interface - 
+		//		 with 'org.springframework.security.config' path and copy qualified name of the interface Customizer<T> 
+				http.formLogin(withDefaults());
+				
+				http.csrf().disable();
+				http.headers().frameOptions().disable();
+				
+		//		X-Frame-Options enabled ==> Frames cannot be used
+		//		h2-console uses frames ==>  Disable X-Frame-Options header
+				return http.build();
+				
+		//		Flow of this function-
+		//		http.authorizeHttpRequests - TO ensure all requests are authenticated
+		//		formLogin - If there is an unauthorized Request, then we are configuring formLogin(), so that we can show a page, where we
+		//		can collect the username and password
+		//		csrf().disable() - Disabling CSRF
+		//		headers().frameOptions().disable() - and enabling use of frames on our application
+			}
+	
+-------------------------------------------------------------------------------------------------------------------
+Shifting From Static List to H2 DB
+
+	In application.properties-
+	
+		#spring.h2.console.enabled=true
+		spring.datasource.url=jdbc:h2:mem:testdb
+		
+		#Below line is for the Compilation error which is occurring from the insert query in the data.sql file, saying no Todo Table 
+		#present. As the data.sql file is getting executed before the creation of the table
+		spring.jpa.defer--datasource-initialization=true
+		
+		#to see all the queries which are executed in the Console
+		spring.jpa.show-sql=true	
+	
+	Create a copy of TodoController.java(and remove @Controller annotation from it) and rename to -TodoController.java 
+	
+		private TodoRepository todoRepository;
+
+		public TodoControllerJpa(TodoRepository todoRepository) {
+			super();
+			this.todoRepository=todoRepository;
+		}
+		
+		--
+		@RequestMapping("list-todos")
+		public String listAllTodos(ModelMap model) {
+					
+			List<Todo> todos = 	todoRepository.findByUsername(getLoggedInUsername(model));
+			
+		--
+		@RequestMapping(value = "add-todo", method = RequestMethod.POST)
+		public String addNewTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+			
+			if (result.hasErrors()) {
+				return "todo";
+			}
+	//		todoRepository.save(new Todo(0,getLoggedInUsername(model), todo.getDescription(), todo.getTargetDate(), todo.isDone()));
+	//		or we can do -
+			todo.setUsername(getLoggedInUsername(model));
+			todoRepository.save(todo);
+			
+		--
+		@RequestMapping("delete-todo")
+		public String deleteTodo(@RequestParam int id) {
+			todoRepository.deleteById(id);
+			return "redirect:list-todos";
+		}
+		
+		@RequestMapping(value="update-todo",method=RequestMethod.GET)
+		public String showUpdateTodoPage(ModelMap model,@RequestParam int id) {
+			Todo todo= todoRepository.findById(id).get();
+			
+		--
+		@RequestMapping(value = "update-todo", method = RequestMethod.POST)
+		public String updateTodo(ModelMap model, @Valid Todo todo, BindingResult result) {
+			
+			if (result.hasErrors()) {
+				return "todo";
+			}
+			todo.setUsername(getLoggedInUsername(model));
+			todoRepository.save(todo);
+	
+-------------------------------------------------------------------------------------------------------------------
+Running Docker
+	
+	Download & Install Docker
+	
+	In pom.xml-
+		<!--
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency> 
+		-->
+		
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+		</dependency>
+	
+	In Command Prompt, execute the command(It is a single line)
+		
+		docker run --detach --env MYSQL_ROOT_PASSWORD=dummypassword --env MYSQL_USER=todos-user --env MYSQL_PASSWORD=dummytodos 
+			--env MYSQL_DATABASE=todos --name mysql --publish 3306:3306 mysql:8-oracle
+			
+		Breakdown - 
+			 
+			 mysql:8-oracle - The docker Image - MySql Image, using the specific version(8-oracle) because it can run on any OS.
+			 
+			 --env MYSQL_ROOT_PASSWORD=dummypassword	- root password
+			 --env MYSQL_USER=todos-user  				- user
+			 --env MYSQL_PASSWORD=dummytodos			- user password
+			 --env MYSQL_DATABASE=todos 				- Inside MySql, we are creating the database - todos				
+			 											Environment Variables
+			 
+			 --name mysql								- specific name given to the container
+			 
+			 --publish 3306:3306						- specifying the port for publishing the application
+			
+	
+	Command - docker container ls
+		To show all the docker Present here.
+	
+		
+	In application.properties - 
+	
+		#For MySql DB(Docker) 
+		#If we are connecting with real database like MySql, SpringBoot will not create table for us. 
+		#If we want it to create table at startup- 
+		spring.jpa.hibernate.ddl-auto=update
+		
+		#Properties of MySql DB 
+		spring.datasource.url=jdbc:mysql://localhost:3306/todos
+		spring.datasource.username=todos-user
+		spring.datasource.password=dummytodos
+		
+		spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+		 
+		#To run (or create & run) The docker container of sql, in cmd write the command - 
+		#(Launch MySQL using Docker) - 
+		#	docker run --detach --env MYSQL_ROOT_PASSWORD=dummypassword --env MYSQL_USER=todos-user --env MYSQL_PASSWORD=dummytodos --env MYSQL_DATABASE=todos --name mysql --publish 3306:3306 mysql:8-oracle
+		
+		#Download mysqlsh
+		#after download, in cmd write - mysqlsh
+		#after that - \connect todos-user@localhost:3306
+		#\sql
+		#use todos
+		#select * from todo;
+		#\quit 
+		 
+		#todos-user@localhost:3306
+	
+	In cmd - 
+		mysqlsh
+		\connect todos-user@localhost:3306
+		\sql
+		use todos
+		select * from todo;
+		\quit 	
+	
+	
+	
+	
+	
+	
+	
+					 
+
