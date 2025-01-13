@@ -1,0 +1,86 @@
+JPA, H2 Database Connection 
+
+	In pom.xml
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+	
+	In appliation.properties -
+
+		spring.h2.console.enabled=true
+		#To enable H2 DB console
+		
+		spring.datasource.url=jdbc:h2:mem:test
+		#H2 will make dynamic URL, each time the server starts, we don't want that, we want a static URL, as defined above.
+	
+	Creating An Entity for our User class, we want JPA to manage this class, and the way we can tell JPA 
+	to manage this class is by adding @Entity annotation to User class.
+	Add @Id annotation to Id in the User class, as it is an identifier. 
+	@GeneratedValue Annotation at ID for automatically generating ID
+	
+	Set @Entity to - @Entity(name = "User_details")
+	Because by default H2 would have made table by the name of User, which is a keyword,& that will result in an error.
+	
+	While trying to add data to H2 DB, through data.sql(present in resources), we are getting an error -
+		Table "USER_DETAILS" not found
+	Because data.sql is getting executed before the creation of the table, so we want to delay data.sql execution. 
+	For this issue, in application.properties, add -
+		spring.jpa.defer-datasource-initialization=true
+		
+--------------------------------------------------------------------------------------------------------------------------
+
+	Create A UserRepository interface which extends JpaRepository<User, Integer> 
+		Here <>, First is the Entity Name, Second is the DataType of Primary Key.
+	
+	Create a copy of UserResource.java, rename it to UserJpaResource.java, in all the url make changes, (/users -> /jpa/users)
+		
+		Create an object of the UserRepository interface, and autowire it through constructor.
+		
+			@GetMapping("/jpa/users")
+			public List<User> retrieveAllUsers(){
+				return repository.findAll();
+			}
+			
+			Create a default constructor in User.java, without which we will get error from the above URL
+			
+			In user.java-
+				
+				@GetMapping("/jpa/users")
+				public List<User> retrieveAllUsers(){
+					return repository.findAll();
+				}
+				@GetMapping("/jpa/users/{id}")
+				public EntityModel<User> retrieveUser(@PathVariable int id){
+					Optional<User> user = repository.findById(id);
+					if(user.isEmpty())
+						throw new UserNotFoundException("id:"+id);
+					EntityModel<User> entityModel = EntityModel.of(user.get());
+					WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+					entityModel.add(link.withRel("all-users"));
+					return entityModel;
+				}
+				@PostMapping("/jpa/users")
+				public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+						User savedUser = repository.save(user);
+						URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+										.path("/{id}")
+										.buildAndExpand(savedUser.getId())
+										.toUri(); 
+						return ResponseEntity.created(location).build();
+				}
+				@DeleteMapping("/jpa/users/{id}")
+				public void deleteUser(@PathVariable int id){
+					repository.deleteById(id);
+		
+	
+	
+	
+	
