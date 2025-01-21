@@ -1,0 +1,352 @@
+Building REST API with Spring Boot - Approach
+
+	1: Build 3 Simple Hello World REST API
+		Understand the magic of Spring Boot
+		Understand fundamentals of building REST API with Spring Boot
+			@RestController, @RequestMapping, @PathVariable, JSON conversion
+			
+	2: Build a REST API for a Social Media Application
+		Design and Build a Great REST API
+			Choosing the right URI for resources (/users, /users/{id}, /users/{id}/posts)
+			Choosing the right request method for actions (GET, POST, PUT, DELETE, ..)
+			Designing Request and Response structures
+			Implementing Security, Validation and Exception Handling
+		Build Advanced REST API Features
+			Internationalization, HATEOAS, Versioning, Documentation, Content Negotiation, ...
+			
+	3: Connect your REST API to a Database
+		Fundamentals of JPA and Hibernate
+		Use H2 and MySQL as databases
+	
+---------------------------------------------------------------------------------------------------------------------------
+
+Difference between -
+
+@RequestMapping(value = "/hello-world",method=RequestMethod.GET)
+@RequestMapping(method=RequestMethod.GET,path="/hello-world")
+
+	The two @RequestMapping annotations in Spring are functionally equivalent, but there is a subtle difference in the way they 
+	are written due to changes in the API over time.
+
+	1. @RequestMapping(value = "/hello-world", method = RequestMethod.GET)
+		Style: Older style (pre-Spring 4.3).
+		Attributes:
+		value is used to specify the URI path.
+		method specifies the HTTP method (in this case, GET).
+		Usage: This style was more common before Spring 4.3.
+	
+	2. @RequestMapping(method = RequestMethod.GET, path = "/hello-world")
+		Style: More modern style introduced in Spring 4.3.
+		Attributes:
+		path is an alias for value and provides the same functionality.
+		method specifies the HTTP method.
+		Usage: Using path instead of value is a more explicit way to define the route path, and it aligns better with other 
+		annotations like @GetMapping, which use path.
+		
+	Recommendation:
+	For new projects or modern codebases, it's better to use the path attribute for better readability and alignment with 
+	newer Spring annotations like @GetMapping, @PostMapping, etc. However, both styles are valid, and the choice depends on the 
+	team's conventions or legacy code requirements.
+
+---------------------------------------------------------------------------------------------------------------------------
+
+What's Happening in the Background?
+
+	Let's explore some Spring Boot Magic: Enable Debug Logging
+		WARNING: Log change frequently!
+	
+	1: How are our requests handled?
+		DispatcherServlet - Front Controller Pattern
+			Mapping servlets: dispatcherServlet urls=[/]
+			Auto Configuration (DispatcherServletAutoConfiguration)
+		
+	2: How does HelloWorldBean object get converted to JSON?
+		@ResponseBody + JacksonHttpMessageConverters
+			Auto Configuration (JacksonHttpMessageConvertersConfiguration)
+	
+	3: Who is configuring error mapping?
+		Auto Configuration (ErrorMvcAutoConfiguration)
+	
+	4: How are all jars available(Spring, Spring MVC, Jackson, Tomcat)?
+		Starter Projects - Spring Boot Starter Web (spring-webmvc, spring-web, springboot-starter-tomcat, spring-boot-starter-json)
+	
+---------------------------------------------------------------------------------------------------------------------------
+
+Social Media Application REST API
+
+	Build a REST API for a Social Media Application
+	
+	Key Resources:
+		Users
+		Posts
+		
+	Key Details:
+		User: id, name, birthDate
+		Post: id, description
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Request Methods for REST API
+
+	GET - Retrieve details of a resource
+	POST - Create a new resource
+	PUT - Update an existing resource
+	PATCH - Update part of a resource
+	DELETE - Delete a resource
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Social Media Application - Resources & Methods
+
+	Users REST API
+		Retrieve all Users
+			GET /users
+	
+		Create a User
+			POST /users
+		
+		Retrieve one User
+			GET /users/{id} -> /users/1
+		
+		Delete a User
+			DELETE /users/{id} -> /users/1
+		
+		Posts REST API
+			Retrieve all posts for a User
+				GET /users/{id}/posts
+			
+			Create a post for a User
+				POST /users/{id}/posts
+				
+			Retrieve details of a post
+				GET /users/{id}/posts/{post_id}
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Response Status for REST API
+
+	Return the correct response status
+		Resource is not found => 404
+		Server exception => 500
+		Validation error => 400
+		
+	Important Response Statuses
+		200 — Success
+		201 — Created
+		204 — No Content
+		401 — Unauthorized (when authorization fails)
+		400 — Bad Request (such as validation error)
+		404 — Resource Not Found
+		500 — Server Error
+
+---------------------------------------------------------------------------------------------------------------------------
+
+Advanced REST API Features
+	
+	Documentation
+	Content Negotiation
+	Internationalization - i18n
+	Versioning
+	HATEOAS
+	Static Filtering
+	Dynamic Filtering
+	Monitoring
+
+---------------------------------------------------------------------------------------------------------------------------
+In Local Machine - We run java class to launch application
+
+In Prod Env - We run Java JAR file
+
+SpringBoot DevTools is disabled when you run a Java JAR file!
+
+So For UserNotFolundException, the commenting of DevTools is only needed here for our convenience and easy understanding
+
+	<!--	Commented because too much unneccesary data was shown in frontend in case of UserNotFoundExcetion
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		--> 
+
+---------------------------------------------------------------------------------------------------------------------------
+
+User.java (Class being used to store data )-
+
+	private Integer id;
+	@Size(min = 2,message = "Name Should have atleast 2 Characters")
+	private String name;
+	@Past(message = "BirthDate should be of past")
+	private LocalDate birthDate;
+
+UserDaoService.java (For all the business logic)(@component or better and more defining - @Service)
+	
+	public List <User> findAll(){
+		return users;
+	}
+
+	public User findOne(int id) {
+		Predicate<? super User> predicate = user -> user.getId().equals(id);
+		//return users.stream().filter(predicate).findFirst().get();
+		return users.stream().filter(predicate).findFirst().orElse(null);
+	}
+	
+	public User save(User user) {
+		user.setId(usersCount++);
+		users.add(user);
+		return user;
+	}
+	
+	public void deleteById(int id) {
+		Predicate<? super User> predicate = user -> user.getId().equals(id);
+		users.removeIf(predicate);
+	}
+	
+UserResource.java (RestController )
+
+	private UserDaoService service;
+	public UserResource(UserDaoService service) {
+		this.service = service;
+	}
+	
+	//GET /users
+	@GetMapping("/users")
+	public List<User> retrieveAllUsers(){
+		return service.findAll();
+	}
+	
+	//GET /users/{id} -> /users/1
+	@GetMapping("/users/{id}")
+	public User retrieveUser(@PathVariable int id){
+		User user = service.findOne(id);
+		
+		if(user==null)
+			throw new UserNotFoundException("id:"+id);
+		//while creating the class for above exception super class will be changed from Exception to RuntimeException
+		//java.lang.RuntimeException
+		//If you extend exception, our exception will become a checked exception, and we want to avoid checked exceptions 
+		//most of the time
+		
+		return user;
+	}
+	
+	//POST /users
+	@PostMapping("/users")
+	public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+			
+			User savedUser = service.save(user);
+		//  /users/4 => /users/{id},  user.getId()
+			URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+							.path("/{id}")
+							.buildAndExpand(savedUser.getId())
+							.toUri(); 
+			//return ResponseEntity.created(null).build();
+			//if, after creation of the user, we want to show it, we have to give a path to /users/{}
+			//Whenever you want to return  a URL of a created resource, 
+			//there is a specific HTTP header you need to make use of that header is called location header -
+			// location - /users/4
+			//and the created method in ResponseEntity accepts URI Location.
+			
+			return ResponseEntity.created(location).build();
+	}
+	
+	@DeleteMapping("/users/{id}")
+	public void deleteUser(@PathVariable int id){
+		service.deleteById(id);
+	}
+
+UserNotFoundException.java
+
+	@ResponseStatus(code = HttpStatus.NOT_FOUND)	//error code to throw when this exception occurs
+	public class UserNotFoundException extends RuntimeException {
+	
+		public UserNotFoundException(String message) {
+			super(message);
+		}
+	
+	}
+
+ErrorDetails.java (Java class used to customize the response sent to the user when exception occurs)
+	
+	private LocalDateTime timestamp ;
+	private String message ;
+	private String details ;
+
+	//constructor and getters of all three
+	
+CustomizedResponseEntityExceptionHandler.java	(Java class used to override the default messages/response,
+		 given to the user, here we define our custom exceptions, as well as override the default ones if we want to)
+	
+	/*
+	The @ControllerAdvice annotation in Spring is used to handle exceptions and provide global exception-handling 
+	logic across multiple controllers in a Spring application. It allows you to centralize and customize how 
+	exceptions are handled, making your code cleaner and reducing repetition.
+	
+	ResponseEntityExceptionHandler is a convenient base class provided by Spring to handle exceptions in a 
+	centralized and consistent manner. It is commonly used in combination with @ControllerAdvice to handle 
+	exceptions globally for a Spring application.
+
+	It provides predefined methods for handling various types of exceptions, such as MethodArgumentNotValidException, 
+	HttpMessageNotReadableException, etc., which are thrown during request processing.
+
+	*/	
+	 
+	@ControllerAdvice	
+	public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler{
+	
+		@ExceptionHandler(Exception.class)
+		public final ResponseEntity<ErrorDetails> handleAllExceptions(Exception ex, WebRequest request) throws Exception {
+			ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+			
+			return new ResponseEntity<ErrorDetails>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		@ExceptionHandler(UserNotFoundException.class)
+		public final ResponseEntity<ErrorDetails> handleUserNotFoundException(Exception ex, WebRequest request) throws Exception {
+			ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+			
+			return new ResponseEntity<ErrorDetails>(errorDetails, HttpStatus.NOT_FOUND);
+		}
+		
+		@Override
+		protected ResponseEntity<Object> handleMethodArgumentNotValid(
+				MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+			
+			String err =ex.getFieldErrors().stream()
+					.map(fieldError -> fieldError.getDefaultMessage())
+					.collect(Collectors.joining(", ", "[", "]"));//(error -> err.concat(error).concat(","));
+					
+			ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), 
+					//ex.getMessage(), request.getDescription(false));
+					//ex.getFieldError().getDefaultMessage(), request.getDescription(false));
+					"Total Errors :" + ex.getErrorCount() + " Error :" + err
+					//"Total Errors :" + ex.getErrorCount() + " First Error :" + ex.getFieldError().getDefaultMessage()
+					,request.getDescription(false));
+			
+			return new ResponseEntity(errorDetails, HttpStatus.BAD_REQUEST);
+		}
+	}	 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

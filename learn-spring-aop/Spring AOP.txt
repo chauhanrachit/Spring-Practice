@@ -1,0 +1,266 @@
+What is Aspect Oriented Programming?
+	
+	A layered approach is typically used to build applications:
+		Web Layer - View logic for web apps OR JSON conversion for REST API
+		Business Layer - Business Logic
+		Data Layer - Persistence Logic
+		
+	Each layer has dierent responsibilities
+		HOWEVER, there are a few common aspects that apply to all layers
+			Security
+			Performance
+			Logging
+			
+	These common aspects are called Cross Cutting Concerns
+	
+	Aspect Oriented Programming can be used to implement Cross Cutting Concerns
+	
+----------------------------------------------------------------------------------------------------------------------------
+
+What is Aspect Oriented Programming? - 2
+
+	1: Implement the cross cutting concern as an aspect
+	
+	2: Define point cuts to indicate where the aspect should be applied
+	
+	TWO Popular AOP Frameworks
+		Spring AOP
+			NOT a complete AOP solution BUT very popular
+			Only works with Spring Beans
+			Example: Intercept method calls to Spring Beans
+			
+		AspectJ
+			Complete AOP solution BUT rarely used
+			Example: Intercept any method call on any Java class
+			Example: Intercept change of values in a field
+		
+	We will be focusing on Spring AOP in this section
+		
+----------------------------------------------------------------------------------------------------------------------------
+
+	Inside Package - com.practice.learnspringaop.aopexample.business
+		
+		BusinessService1.java 
+		
+		@Service
+		public class BusinessService1 {
+			private DataService1 dataService1;
+			public BusinessService1(DataService1 dataService1) {
+				this.dataService1 = dataService1;
+			}
+			public int calculateMax() {
+				int[] data = dataService1.retrieveData();
+				return Arrays.stream(data).max().orElse(0);
+			}
+		}
+	
+	Inside Package - com.practice.learnspringaop.aopexample.data
+		
+		DataService1.java
+		
+		@Repository
+		public class DataService1 {
+			public int[] retrieveData() {
+				return new int[] {11,22,33,44,55};
+			}
+		}
+		
+	In LearnSpringAopApplication.java
+		
+		import org.slf4j.Logger;
+		import org.slf4j.LoggerFactory;
+		@SpringBootApplication
+		public class LearnSpringAopApplication implements CommandLineRunner {
+			//To make use of the spring beans we created (BussinessService1, DataService1) we will use Command Line Runner
+			private Logger logger = LoggerFactory.getLogger(getClass());
+			private BusinessService1 businessService1 ;
+			public LearnSpringAopApplication (BusinessService1 businessService1){
+				this.businessService1 = businessService1 ;
+			}
+			public static void main(String[] args) {
+				SpringApplication.run(LearnSpringAopApplication.class, args);
+			}
+			@Override
+			public void run(String... args) throws Exception {	
+				logger.info("Value returned is {}" , businessService1.calculateMax());
+			}
+		}
+	
+	In build.gradle, add dependency -
+	
+		implementation 'org.springframework.boot:spring-boot-starter-aop'
+		
+		Right Click project, Gradle -> Refresh Gradle Project
+	
+----------------------------------------------------------------------------------------------------------------------------
+	
+Aspect Oriented Programming - Important Terminology
+
+	Compile Time
+		Advice - What code to execute?
+			Example: Logging, Authentication
+			
+		Pointcut - Expression that identifies method calls to be intercepted
+			Example: execution( com.practice.aop.data..*(..))
+			
+		Aspect - A combination of
+			1: Advice - what to do AND
+			2: Pointcut - when to intercept a method call
+			
+		Weaver - Weaver is the framework that implements AOP
+			AspectJ or Spring AOP
+			
+	Runtime
+		Join Point - When pointcut condition is true, the advice is executed. 
+					 A specific execution instance of an advice is called a Join Point.
+			
+----------------------------------------------------------------------------------------------------------------------------
+
+In Package com.practice.learnspringaop.aopexample.aspects;
+	
+	LoggingAspect.java
+		
+		//Define that this is a Configuration Class
+		@Configuration
+		//Which contains AOP Configuration
+		@Aspect
+		public class LoggingAspect {
+			
+			private Logger logger = LoggerFactory.getLogger(getClass());
+			
+			//Pointcut -- Defines When to log Method Calls - When ?
+			//If we want to intercept all the calls to the class in a specific package then the syntax for pointcut is ->
+			// execution(* Package.*.*(..))
+			// execution(* com.practice.learnspringaop.aopexample.business.*.*(..))
+			//@Pointcut("execution(* com.practice.learnspringaop.aopexample.business.*.*(..))")
+			//We want to execute this Pointcut before a method is called, and that's why we will use ->
+			//@Before("execution(* com.practice.learnspringaop.aopexample.business.*.*(..))")
+			//@Before("execution(* com.practice.learnspringaop.aopexample.data.*.*(..))")
+			//@Before("execution(* com.practice.learnspringaop.aopexample.*.*.*(..))")
+			
+			@Before("execution(* com.practice.*.*.*.*.*(..))")
+			public void logMethodCall(JoinPoint joinPoint) {
+				//Now, we want to identify a specific method execution, a specific method execution is called - JoinPoint
+				
+				//Logic here - What ?
+				//logger.info("Before Aspect - Method is called - {}" , joinPoint);
+				logger.info("Before Aspect - {} is called with arguments: {}" , joinPoint,joinPoint.getArgs());
+			}
+		}	
+	
+----------------------------------------------------------------------------------------------------------------------------
+
+Aspect Oriented Programming - Important Annotations
+	
+	@Before - Do something before a method is called
+	
+	@After - Do something after a method is executed irrespective of whether:
+		1: Method executes successfully OR
+		2: Method throws an exception
+		
+	@AfterReturning - Do something ONLY when a method executes successfully
+	
+	@AfterThrowing - Do something ONLY when a method throws an exception
+	
+	@Around - Do something before and after a method execution
+		Do something AROUND a method execution
+				
+----------------------------------------------------------------------------------------------------------------------------
+
+	Changes and Progress In Logging Aspect.java 
+	
+		@Before("execution(* com.practice.*.*.*.*.*(..))")
+		public void logMethodCallBeforeExecution(JoinPoint joinPoint) {
+			//Now, we want to identify a specific method execution, a specific method execution is called - JoinPoint
+			
+			//Logic here - What ?
+			//logger.info("Before Aspect - Method is called - {}" , joinPoint);
+			logger.info("Before Aspect - {} is called with arguments: {}" , joinPoint,joinPoint.getArgs());
+		}
+		@After("execution(* com.practice.*.*.*.*.*(..))")
+		public void logMethodCallAfterExecution(JoinPoint joinPoint) {
+			logger.info("After Aspect - {} has executed" , joinPoint);
+		}
+		@AfterThrowing(
+			pointcut = "execution(* com.practice.*.*.*.*.*(..))", throwing = "exception" )
+		public void logMethodCallAfterException(JoinPoint joinPoint, Exception exception) {
+			logger.info("AfterThrowing Aspect - {} has thrown an exception {}" , joinPoint, exception);
+		}
+		@AfterReturning(
+			pointcut = "execution(* com.practice.*.*.*.*.*(..))", returning = "resultValue" )
+		public void logMethodCallAfterSuccessfulExecution(JoinPoint joinPoint, Object resultValue) {
+			logger.info("AfterReturning Aspect - {} has returned the value {}" , joinPoint, resultValue);
+		}
+	
+	In BusinessService1.java
+		
+		public int calculateMax() {
+			int[] data = dataService1.retrieveData();
+			//throw new RuntimeException("Something Went wrong");
+			return Arrays.stream(data).max().orElse(0);
+		}
+	
+----------------------------------------------------------------------------------------------------------------------------
+
+In package com.practice.learnspringaop.aopexample.aspects;
+	
+	PerformanceTrackingAspect.java -
+	
+		@Aspect
+		@Configuration
+		public class PerformanceTrackingAspect {
+			private Logger logger = LoggerFactory.getLogger(getClass());
+			@Around("execution(* com.practice.learnspringaop.aopexample.*.*.*(..))")
+			public Object findExecutionTime(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+				//Start a timer
+				long startTimeMillis = System.currentTimeMillis();
+				//Execute the method
+				Object returnValue = proceedingJoinPoint.proceed();
+				//Stop the timer
+				long stopTimeMillis = System.currentTimeMillis();
+				
+				long executionDuration = stopTimeMillis - startTimeMillis ;
+				logger.info("Around Aspect - {} Method executed in {}",proceedingJoinPoint,executionDuration);
+				
+				return returnValue;
+			}
+		}	
+	
+	Create a copy of Both BusinessService1,DataService1 with different Int array, to find Min instead of max 
+		
+		In LearnSpringAopApplication.java
+			
+			public void run(String... args) throws Exception {
+				logger.info("Value returned is {}" , businessService1.calculateMax());
+				logger.info("Value returned is {}" , businessService2.calculateMin());
+			}
+		
+	Add Thread.sleep in functions which are shown in Around Aspect to see more time duration in the function 
+	
+----------------------------------------------------------------------------------------------------------------------------
+
+Right now, if there is any change in packages, all the pointcuts need to be changed, therefore we will define Pointcut in 
+a method in a separate class and use the qualified name of that method wherever we use Pointcut, as that method will point
+to the specified Pointcut
+	
+	In aspects package - 
+		In CommonPointcutConfig.java
+			
+			public class CommonPointcutConfig {
+				@Pointcut("execution(* com.practice.learnspringaop.aopexample.*.*.*(..))")
+				public void businessAndDataPackageConfig() {}
+				
+				@Pointcut("execution(* com.practice.learnspringaop.aopexample.business.*.*(..))")
+				public void businessPackageConfig() {}
+				
+				@Pointcut("execution(* com.practice.learnspringaop.aopexample.data.*.*(..))")
+				public void dDataPackageConfig() {}
+				
+				@Pointcut("bean(*Service*)")
+				public void allPackageConfigUsingBean() {}
+			}
+			
+	
+	Change all the pointcuts in LoggingAspect and PerformanceTrackingAspect to the qualified name of this method.	
+
+	
