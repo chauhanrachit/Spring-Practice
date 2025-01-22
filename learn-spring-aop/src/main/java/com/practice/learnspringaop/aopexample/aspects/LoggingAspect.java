@@ -29,6 +29,7 @@ public class LoggingAspect {
 	//@Before("execution(* com.practice.learnspringaop.aopexample.*.*.*(..))")
 	//@Before("execution(* com.practice.*.*.*.*.*(..))")
 	@Before("com.practice.learnspringaop.aopexample.aspects.CommonPointcutConfig.allPackageConfigUsingBean()")
+	//@Before("com.practice.learnspringaop.aopexample.aspects.CommonPointcutConfig.businessAndDataPackageConfig()")
 	public void logMethodCallBeforeExecution(JoinPoint joinPoint) {
 		//Now, we want to identify a specific method execution, a specific method execution is called - JoinPoint
 		

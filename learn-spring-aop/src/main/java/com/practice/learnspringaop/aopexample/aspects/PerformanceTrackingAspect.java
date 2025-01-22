@@ -13,7 +13,9 @@ public class PerformanceTrackingAspect {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
-	@Around("com.practice.learnspringaop.aopexample.aspects.CommonPointcutConfig.businessAndDataPackageConfig()")
+//	@Around("com.practice.learnspringaop.aopexample.aspects.CommonPointcutConfig.businessAndDataPackageConfig()")
+//	Now we only want to track time of Methods which have @TrackTime annotation, therefore ->
+	@Around("com.practice.learnspringaop.aopexample.aspects.CommonPointcutConfig.trackTimeAnnotation()")
 	public Object findExecutionTime(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
 		//Start a timer
 		long startTimeMillis = System.currentTimeMillis();
