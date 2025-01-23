@@ -1,0 +1,225 @@
+How does Traditional Deployment work?
+
+	Deployment process described in a document
+	
+	Operations team follows steps to:
+		Setup Hardware
+		Setup OS (Linux, Windows, Mac, ...)
+		Install Soware (Java, Python, NodeJs, ...)
+		Setup Application Dependencies
+		Install Application
+		
+	Manual approach:
+		Takes a lot of time
+		High chance of making mistakes
+		
+-----------------------------------------------------------------------------------------------------------------------------
+
+Understanding Deployment Process with Docker
+
+	Simplified Deployment Process:
+		OS doesn't matter
+		Programming Language does not matter
+		Hardware does not matter
+		
+	01: Developer creates a Docker Image
+	
+	02: Operations run the Docker Image
+			Using a very simple command
+	
+	Takeaway: Once you have a Docker Image, irrespective of what the docker image contains, you run it the same way!
+		Make your operations team happy
+		
+-----------------------------------------------------------------------------------------------------------------------------
+How does Docker Make it Easy?
+
+	Docker image has everything you need to run your application:
+		Operating System
+		Application Runtime (JDK or Python or NodeJS)
+		Application code and dependencies
+		
+	You can run a Docker container the same way everywhere:
+		Your local machine
+		Corporate data center
+		Cloud
+	
+-----------------------------------------------------------------------------------------------------------------------------
+Run Docker Containers Anywhere
+		
+		[Container1]			[Container2]			[Container3]
+		[						DockerEngine					   ]
+		[						  HostOS						   ]
+		[					CloudInfrastructure					   ]
+		
+		All that you need is a Docker Runtime (like Docker Engine)
+		
+-----------------------------------------------------------------------------------------------------------------------------
+Why is Docker Popular?
+		
+		
+		[		Standardized		]		[			Multi			]			[			Isolation			]
+		[Application Packaging		]		[	Platform	Support		]
+		[i.e. Same packaging for	]		[	i.e. Local Machine		]			[	Containers have isolation	]
+		[all types of applications	]		[		Data Center			]			[		from one another		]
+		[Java,Python or JS			]		[Cloud - AWS, Azure and GCP	]
+		
+		[											Docker															]
+		
+-----------------------------------------------------------------------------------------------------------------------------
+What's happening in the Background?
+	
+	docker container run -d -p 5000:5000 in28min/hello-world-nodejs:0.0.1.RELEASE
+	
+	I will be using 
+	
+	docker container run -d -p 5001:5000 in28min/hello-world-nodejs:0.0.1.RELEASE	
+	
+	Since port 5000 is not available on my pc
+	
+	Docker image is downloaded from Docker Registry (Default: Docker Hub)
+	
+		https://hub.docker.com/r/in28min/hello-world-nodejs
+		
+		Image is a set of bytes
+		
+		Container: Running Image
+		
+		in28min/hello-world-nodejs: Repository Name
+		
+		0.0.1.RELEASE: Tag (or version)
+		
+		-p hostPort:containerPort: Maps internal docker port (container port) to a port on the host (host port)
+			By default, Docker uses its own internal network called bridge network
+			We are mapping a host port so that users can access your application
+			
+		-d: Detatched Mode (Don't tie up the terminal)
+		
+-----------------------------------------------------------------------------------------------------------------------------
+Understanding Docker Terminology
+
+	Docker Image: A package representing specific version of your application (or soware)
+		Contains everything your app needs
+			OS, soware, code, dependencies
+	Docker Registry: A place to store your docker images
+	Docker Hub: A registry to host Docker images
+	Docker Repository: Docker images for a specific app (tags are used to dierentiate dierent images)
+	Docker Container: Runtime instance of a docker image
+	Dockerfile: File with instructions to create a Docker image
+
+-----------------------------------------------------------------------------------------------------------------------------
+Dockerfile - 1 - Creating Docker Images
+
+			FROM openjdk:21-jdk-slim
+			COPY target/*.jar app.jar
+			EXPOSE 5001
+			ENTRYPOINT ["java","-jar","/app.jar"]
+				
+	With The above four lines create a file named --- 'Dockerfile'					
+				
+	Dockerfile contains instruction to create Docker images
+		FROM - Sets a base image
+		COPY - Copies new files or directories into image
+		EXPOSE - Informs Docker about the port that the container listens on at runtime
+		ENTRYPOINT - Configure a command that will be run at container launch
+		
+	Then Do a Maven clean Install
+	
+	Then Open command prompt and the location in command prompt should be where Dockerfile is located, 
+		i.e. Inside the project 
+		
+	Then write the build command --
+			
+			docker build -t in28min/hello-world:v1 .
+
+	Use --
+			
+			docker image list
+		
+		To get the list of images in the docker
+		
+	Then --
+	
+			docker run -d -p 5001:5001 practice/hello-world-docker:v1
+			
+		This command will run the container
+
+-----------------------------------------------------------------------------------------------------------------------------
+Dockerfile - 2 - Build Jar File - Multi Stage
+
+			FROM maven:3.9.6-amazoncorretto-21-al2023 AS build
+			WORKDIR /home/app
+			COPY . /home/app
+			RUN mvn -f /home/app/pom.xml clean package
+			
+			FROM openjdk:21-jdk-slim
+			EXPOSE 5001
+			COPY --from=build /home/app/target/*.jar app.jar
+			ENTRYPOINT [ "sh", "-c", "java -jar /app.jar" ]
+
+	Building the jar file as part of creation of Docker Image
+	Your build does NOT make use of anything built on your local machine
+
+------------------------------------------------------------------------------------------------------------------------------
+Dockerfile - 3 - Improve Layer Caching
+			
+			FROM maven:3.9.6-amazoncorretto-21-al2023 AS build
+			WORKDIR /home/app
+			
+			COPY ./pom.xml /home/app/pom.xml
+			COPY ./src/main/java/com/practice/rest/webservices/restfulwebservices/RestfulWebServicesApplication.java	/home/app/src/main/java/com/practice/rest/webservices/restfulwebservices/RestfulWebServicesApplication.java
+			
+			RUN mvn -f /home/app/pom.xml clean package
+			
+			COPY . /home/app
+			RUN mvn -f /home/app/pom.xml clean package
+			
+			FROM openjdk:21-jdk-slim
+			EXPOSE 5001
+			COPY --from=build /home/app/target/*.jar app.jar
+			ENTRYPOINT [ "sh", "-c", "java -jar /app.jar" ]
+			
+	Docker caches every layer and tries to reuse it
+	This feature makes our build efficient
+
+------------------------------------------------------------------------------------------------------------------------------
+Spring Boot Maven Plugin - Create Docker Image
+	
+	Spring Boot Maven Plugin: Provides Spring Boot support in Apache Maven
+		Example: Create executable jar package
+		Example: Run Spring Boot application
+		Example: Create a Container Image
+		Commands:
+			mvn spring-boot:repackage (create jar or war)
+				Run package using java -jar
+				
+				Not working for me, but getting success from ---
+				
+					mvn clean package spring-boot:repackage
+				
+			mvn spring-boot:run (Run application)
+			mvn spring-boot:start (Non-blocking. Use it to run integration tests.)
+			mvn spring-boot:stop (Stop application started with start command)
+			mvn spring-boot:build-image (Build a container image)
+
+	Creating image with 'mvn spring-boot:build-image' is very efficient, it will create an image which is much smaller then 
+		the images created from cmd commands. Another thing is, the build image process will also be very efficient.
+		
+	After creating the image, from cmd promt -- 
+			
+			docker image ls
+		
+		To get the name of the Image
+		
+			docker container run -d -p 5001:5001 docker:0.0.1-SNAPSHOT
+			
+		To run the container.
+		
+			docker container ls
+			
+		To see the running container
+	
+			docker container stop <CONTAINER ID>
+			
+		To stp the container
+
+------------------------------------------------------------------------------------------------------------------------------
