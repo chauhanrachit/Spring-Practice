@@ -1,0 +1,54 @@
+Introduction to Unit Testing with JUnit
+	
+	Large applications can have 1000s of code files and millions of lines of code
+	
+	Testing: Check app behavior against expected behavior 
+	
+		Option 1: Deploy the complete application and test
+			THis is called System Testing or Integration Testing
+			
+		Option 2: Test specific units of application code independently
+			
+			Example: A specific method or group of methods 
+			
+			This is called Unit Testing
+			
+			Advantages of Unit Testing 
+				
+				Finds bug early (run under CI)
+				Easy to fix bugs
+				Reduces costs in the long run
+			
+			Most Popular Java Frameworks: JUnit and Mockito
+		
+		Recommended: Option 1 + Option 2
+		
+------------------------------------------------------------------------------------------------
+ 
+ Create a new java project 
+ 
+ 	Then create a java file in src - 
+ 	
+ 		package com.practice.junit;
+		public class MyMath {
+			
+			public int calculateSum(int[] numbers) {
+				int sum =0;
+				
+				for(int number:numbers) {
+					sum+=number;
+				}
+				return sum;
+			}
+		}
+ 		
+ 	Then create a new Source Folder for writing Test cases, named test
+ 	
+ 	In test create JUnit test case
+ 	
+ 	While creating the test case, select New JUnit Jupiter test, which is version 5 of JUnit
+ 	
+ 	
+ 	
+ 	
+ 
