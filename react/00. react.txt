@@ -1,0 +1,467 @@
+What will we build?
+	
+	Counter Application
+		Understand React Fundamentals
+		
+	A Full-Stack Todo Management Application
+		Add Todo
+		Delete Todo
+		Update Todo
+		Authentication (Login/Logout)
+		JWT
+
+------------------------------------------------------------------------------------------------------------
+
+Full Stack Architecture
+	
+	Front-end: React Framework
+		Modern JavaScript
+		
+	Backend REST API: Spring Boot
+	
+	Database
+		H2 > MySQL
+		
+	Authentication
+		Spring Security (Basic > JWT)
+		
+------------------------------------------------------------------------------------------------------------		
+
+Why Full-Stack Architecture?
+
+	Full Stack Architectures are complex to build
+		You need to understand dierent languages
+		You need to understand a variety of frameworks
+		You need to use a variety of tools
+		
+	Why Full-Stack?
+		Because they give you flexibility and allow reuse of REST API
+			OPTION: Create a Mobile App talking to REST API
+			OPTION: Create an IOT App talking to REST API
+			
+------------------------------------------------------------------------------------------------------------
+
+Quick Look into JavaScript History
+
+	JavaScript evolved considerably in the last decade or so
+	
+		(EARLIER JS Versions) Very diicult to write maintainable JavaScript code
+		
+		Improved drastically in the last decade
+			JAVASCRIPT VERSIONS
+				ES5 - 2009
+				ES6 - 2015 - ES2015
+				ES7 - 2016 - ES2016
+				...
+				ES13 - 2022 - ES2022
+				ES14 - 2023 - ES2023
+				...
+				
+		ES: ECMASCRIPT
+			EcmaScript is standard
+			
+			JavaScript is implementation
+	
+	GOOD NEWS: Writing Good JavaScript code is not so diicult :)
+		Do NOT worry if you are new to JavaScript
+		
+------------------------------------------------------------------------------------------------------------
+		
+What is React?
+
+	React: One of the most popular JavaScript libraries to build SPA (Single Page Applications)
+		Popular alternatives: Angular, VueJS
+		
+	Open-source project created by Facebook Component-Based
+	
+	Mostly used to build front-end web SPA applications
+		Can also be used to create native apps for Android, iOS (React Native)
+		
+------------------------------------------------------------------------------------------------------------
+		
+Creating React App with Create React App
+
+	Create React App: Recommended way to create a new single-page application (SPA) using React
+		Compatible with macOS, Windows, and Linux
+		
+		Prerequisite: Latest version of Node JS
+			NPM - package manager: Install, delete, and update JS packages (npm --version)
+			NPX - package executer: Execute JS packages directly, without installing
+			
+		Let's get started:
+			cd YOUR_FOLDER
+			npx create-react-app todo-app
+			cd todo-app
+			npm start
+
+------------------------------------------------------------------------------------------------------------
+
+Troubleshooting
+
+	Windows: Launch command prompt as administrator
+	
+	Mac or Linux: Use sudo
+		sudo npx create-react-app todo-app
+		
+	Other things you can try:
+		npm uninstall -g create-react-app
+		npx clear-npx-cache
+		
+	Complete troubleshooting guide:
+		Google for "create react app troubleshooting"
+
+------------------------------------------------------------------------------------------------------------
+
+Important Commands
+	
+	npm start: Runs the app in development mode
+		Recommendation: Use Google Chrome
+		
+	npm test: Run unit tests
+	
+	npm run build: Build a production deployable unit
+		Minified
+		Optimized for performance
+		
+	npm install --save react-router-dom: Add a dependency to your project
+
+------------------------------------------------------------------------------------------------------------
+
+After downloading and installing NOdeJS, in cmd prompt check node and npm version with 
+
+	node -v
+	npm -va
+	
+Then do 
+	Spring Practice>react(folder)
+		npm init
+	To create a project of react
+	Write the details for the project
+	
+		npm install jquery
+	To add jquery dependency
+		
+	Now, Spring Practice>react(folder)
+		npx create-react-app todo-app
+	
+	While using this command to create a react app, I am getting errors, so I will be using 'yarn'
+	
+		npm imstall -g yarn
+	To install yarn
+		
+		yarn create react-app todo-app
+	
+	To create the application with yarn instead of npx
+	
+		yarn start 
+	Starts the development server.
+		
+		yarn build
+	Bundles the app into static files for prodcuction
+		
+		yarn test
+	Starts the test runner
+	
+		yarn eject
+	Removes this tool and copies build dependencies, configuration files and scripts into the app directory. 
+	If you do this, you can't go back.
+	
+	Begin by typing 
+		cd todo-app
+		yarn start
+		
+------------------------------------------------------------------------------------------------------------
+
+Exploring Create React App Folder Structure
+	
+	Goal: Get a 10,000 feet overview of folder structure
+		README.md: Documentation
+		package.json: Define dependencies (similar to Maven pom.xml)
+		node_modules: Folder where all the dependencies are downloaded to
+		React Initialization
+			public/index.html: Contains root div
+				
+			src/index.js: Initializes React App. Loads App component.
+				src/index.css - Styling for entire application
+				
+				Populates the root div with App component
+					
+			src/App.js: Code for App component
+				src/App.css - Styling for App component
+				src/App.test.js - Unit tests for App component
+					Unit test is right along side production code (Dierent to Java approach)
+			
+		Remember: Syntax might look little complex
+			Dierent from typical Java code (imports, ...)
+			We will focus on it a little later
+
+------------------------------------------------------------------------------------------------------------
+In index.html
+
+		<title>Todo App</title>
+	Change Title to Todo App
+	
+In App.js
+	Remove the entire header, and just write 'My Todo Application', andremove the import of logo.svg
+	
+In App.css
+	Remove everything except 
+	
+		.App {
+		  text-align: center;
+		}
+
+------------------------------------------------------------------------------------------------------------
+Why do we need React Components?
+
+	Web applications have complex structure
+		Menu, Header, Footer, Welcome Page, Login Page, Logout Page, Todo Page etc
+	
+	Components help you modularize React apps
+		Create separate components for each page element
+			Menu Component
+			Header Component
+			Footer Component
+			..
+			
+		Why?
+			Modularization
+			Reuse
+			
+Understanding React Components
+
+	First component typically loaded in React Apps: App Component
+	
+	Parts of a Component
+		View (JSX or JavaScript)
+		Logic (JavaScript)
+		Styling (CSS)
+		State (Internal Data Store)
+		Props (Pass Data)
+		
+	(Remember) React component names must always start with a capital letter
+	
+------------------------------------------------------------------------------------------------------------
+Creating a React Component
+
+		function FirstComponent() {
+			return (
+				<div className="FirstComponent">FirstComponent</div>
+			);
+		}
+		class ThirdComponent extends Component {
+			render() {
+				return (
+					<div className="ThirdComponent">ThirdComponent</div>
+				);
+			}
+		}
+	
+	For now, we will keep things simple:
+	We will write all code in one module
+		First Component
+		Exercise: Second Component
+		Third Component as Class Component
+		Exercise: Fourth Component
+
+------------------------------------------------------------------------------------------------------------
+In App.js
+
+	function App() {
+	  return (
+		<div className="App">
+		  <FirstComponent></FirstComponent>
+		  <SecondComponent/>
+		  <ThirdComponent/>
+		  <FourthComponent/>
+		</div>
+	  );
+	}
+	function FirstComponent(){
+	  return (<div className="FirstComponent">
+		  First Component
+	  </div>)
+	}
+	//Function Components
+	function SecondComponent(){
+	  return (<div className="SecondComponent">
+		  Second Component
+	  </div>)
+	}
+	//class components
+	class ThirdComponent extends Component{
+	  render(){
+		return (<div className="ThirdComponent">
+		  Third Component
+		</div>)
+	  }
+	}
+	class FourthComponent extends Component{
+	  render(){
+		return (<div className="FourthComponent">
+		  Fourth Component
+		</div>)
+	  }
+	}
+	
+------------------------------------------------------------------------------------------------------------
+We will only be using function components from now on, because-
+	
+Understanding State in React
+	
+	State: Built-in React object used to contain data or information about the component
+	
+	In earlier versions of React, ONLY Class Components can have state
+		AND implementing state was very complex!
+
+	Hooks were introduced in React 16.8
+		Hooks are very easy to use
+		useState hook allows adding state to Function Components
+			useState returns two things
+				1: Current state
+				2: A function to update state
+
+		Each instance of component has it's own state
+		How to share state between components?
+			Move state “upwards” (to a parent component)
+			
+------------------------------------------------------------------------------------------------------------
+Getting Started with JSX - Views with React
+	
+	React projects use JSX for presentation
+		Stricter than HTML
+			Close tags are mandatory
+			Only one top-level tag allowed:
+				Cannot return multiple top-level JSX tags
+				Wrap into a shared parent
+					<div>...</div> or <>...</> (empty wrapper)
+	
+	How is JSX enabled in a React project?
+		Different browsers have dierent support levels modern JS features (ES2015,..,ES2022,..)
+			How to ensure backward compatibility for your JS code?
+			Solution: Babel
+			Babel also converts JSX to JS
+			
+------------------------------------------------------------------------------------------------------------
+Babel and JSX
+
+	Babel: https://babeljs.io/repl
+		How does JSX get converted to JS?
+			Example 1: <h1 className="something" attr="10">heading</h1>
+			Example 2: <Parent attr="1"><Child><AnotherChild></AnotherChild></Child></Parent>
+			
+		Following are examples of ERRORs
+			<h1></h1><h2></h2>
+				SOLUTION: wrap with <div>...</div> or <>...</> (empty wrapper)
+				
+			Close tags are mandatory
+		
+	Let's try JSX in our components
+		Parentheses () make returning complex JSX values easier
+		
+		Custom Components should start with upper case letter
+			For HTML you should use small case
+			
+		Specify CSS class - className	
+			Similar to HTML class attribute
+			
+------------------------------------------------------------------------------------------------------------
+Changes in App.js
+
+	function FirstComponent(){
+	  return <div className="FirstComponent">First Component </div>
+	}
+	//Parentheses () make returning complex JSX values easier
+
+	//Function Components
+	function SecondComponent(){
+	  return <div className="SecondComponent">
+		  Second Component
+	  </div>
+	}
+
+	//class components
+	class ThirdComponent extends Component{
+	  render(){
+		return (<div className="ThirdComponent">
+		  Third Component
+		</div>)
+	  }
+	}
+
+	class FourthComponent extends Component{
+	  render(){
+		return (
+		  <>
+		  <div className="FourthComponent"> Fourth Component </div>
+		  <div className="FourthComponent"> Fourth Component </div>
+		  </>
+		)
+	  }
+	}
+
+	class FifthComponent extends Component{
+	  render(){
+		return (
+		  <div>
+		  <div className="FifthComponent"> Fifth Component </div>
+		  <div className="FifthComponent"> Fifth Component </div>
+		  </div>
+		)
+	  }
+	}
+	
+------------------------------------------------------------------------------------------------------------
+Let's follow JavaScript Best Practices
+
+	1: Each component in its own file (or module)
+		src\components\learning-examples\FirstComponent.jsx
+		
+		Exercise: Move SecondComponent, ThirdComponent & FourthComponent to their own modules
+		
+		To use a class from a dierent module, you need to import it
+			Default import
+				import FirstComponent from './components/learning/FirstComponent.jsx';
+				
+			Named import
+				import { FihComponent } from './components/learning/FirstComponent.jsx';
+	
+	2: Exercise: Create LearningComponent and move all code in App component to it!
+	
+------------------------------------------------------------------------------------------------------------
+In App.js
+
+	import './App.css';
+	import LearningComponent from './components/learning-examples/LearningComponent';
+
+	function App() {
+	  return (
+		<div className="App">
+		  <LearningComponent />
+		</div>
+	  )
+	}
+	
+In LearningComponent.jsx (.\src\components\learning-examples)
+	
+	import FirstComponent from './FirstComponent' 
+	import {SixthComponent} from './FirstComponent'
+	import SecondComponent from './SecondComponent'
+	import ThirdComponent   from './ThirdComponent'
+	import FourthComponent  from './FourthComponent'
+	import FifthComponent   from './FifthComponent'
+
+	export default function LearningComponent(){
+		return (
+			<div className="LearningComponent">
+				<FirstComponent />
+				<SecondComponent />
+				<ThirdComponent />
+				<FourthComponent />
+				<FifthComponent />
+				<SixthComponent />
+			</div>
+		)
+	}
+	
+Create jsx file for each Component
