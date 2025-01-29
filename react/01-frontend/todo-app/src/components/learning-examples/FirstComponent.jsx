@@ -4,5 +4,7 @@ export default function FirstComponent(){
 //Parentheses () make returning complex JSX values easier
 
 export function SixthComponent(){
-    return <div className="SixthComponent">Sixth Component </div>
+    return (<div className="SixthComponent">
+        Sixth Component 
+        </div>)
 }

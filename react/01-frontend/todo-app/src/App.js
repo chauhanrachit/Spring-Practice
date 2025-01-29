@@ -1,12 +1,18 @@
 import './App.css';
-import LearningComponent from './components/learning-examples/LearningComponent';
+//import LearningComponent from './components/learning-examples/LearningComponent';
+import Counter from './components/counter/Counter';
 
 function App() {
-  return (
+  return(
     <div className="App">
-      <LearningComponent />
+      <Counter />
     </div>
   )
+  // return (
+  //   <div className="App">
+  //     <LearningComponent />
+  //   </div>
+  // )
 }
 //Parentheses () make returning complex JSX values easier
 //Function Components

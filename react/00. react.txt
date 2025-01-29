@@ -412,7 +412,7 @@ Changes in App.js
 	}
 	
 ------------------------------------------------------------------------------------------------------------
-Let's follow JavaScript Best Practices
+Following JavaScript Best Practices
 
 	1: Each component in its own file (or module)
 		src\components\learning-examples\FirstComponent.jsx
@@ -464,4 +464,243 @@ In LearningComponent.jsx (.\src\components\learning-examples)
 		)
 	}
 	
-Create jsx file for each Component
+Create jsx file for each Component, by moving the entire component into it.
+------------------------------------------------------------------------------------------------------------
+Quick JavaScript Tour For Java Developers
+
+		const person = {
+			name: 'Ranga Karanam',
+			address: {
+				line1: 'Baker Street',
+				city: 'London',
+				country: 'UK',
+			},
+			profiles: ['twitter', 'linkedin', 'instagram'],
+			printProfile: () => {
+				person.profiles.map(
+					profile => console.log(profile)
+				)
+			}
+		}
+
+	No need to use semicolon!
+	Dynamic objects
+	You can store a function in an object!
+
+------------------------------------------------------------------------------------------------------------
+Create --> src\components\learning-examples\LearningJavaScript.jsx
+
+	const person = {
+		Name: 'Rachit',
+		// address: 'Delhi'
+		address: {
+			line1: '123 abcde',
+			line2: 'fghij 456789',
+			city: 'Delhi',
+			country: 'India',
+		},
+		profiles: ['twitter','linkedin','instagram'],
+		printProfile: ()=> {
+			person.profiles.map(
+				// (profile) => {
+				//     console.log(profile)
+				// }
+				profile => console.log(profile)
+			)
+			console.log(person.profiles[0])
+		}
+	}
+	// function printProfile(){
+	//     console.log(person.profiles[0])
+	// }
+	export default function LearningJavaScript(){
+		return (
+			<>
+				<div>{person.Name}</div>
+				<div>{person.address.line1}</div>
+				<div>{person.address.line2}</div>
+				<div>{person.address.city}</div>
+				<div>{person.address.country}</div>
+				<div>{person.profiles[0]}</div>
+				<div>{person.printProfile()}</div>
+			</>
+		)
+	}
+	
+	In LeaningComponent add a div for this jsx -->
+		
+		<LearningJavaScript />
+
+------------------------------------------------------------------------------------------------------------
+Digging Deeper into Components - Counter
+
+	Parts of a Component
+		View (JSX or JavaScript)
+		Logic (JavaScript)
+		Styling (CSS)
+		State (Internal Data Store)
+		Props (Pass Data)
+		
+	Creating a simple example 	
+		A Counter App
+		
+------------------------------------------------------------------------------------------------------------
+Inside src\components\counter
+	
+	Create Counter.jsx
+		
+		import './Counter.css'
+		export default function Counter(){
+			/*
+			const buttonStyle = {
+				fontSize:"16px",
+				backgroundColor:"#00a5ab",
+				width: "100px",
+				margin:"10px",
+				color:"white",
+				padding:"15px",
+				borderRadius:"30px"
+			};
+			*/
+			//margin  creates extra space AROUND an element
+			//padding creates extra space WITHIN an element
+			function incrementCounterFunction(){
+				console.log('increment clicked')
+			}
+			return(
+				<div className="Counter">
+					<span className="count">0</span>
+					<div>
+						<button className="counterButton" 
+								onClick={incrementCounterFunction} 
+		//                        style = {{fontSize:"30px"}} 
+		//                        style = {buttonStyle}
+						>
+							+1
+						</button>
+					</div>
+				</div>
+			)
+		}
+		
+		
+	Create Counter.css
+	
+		/*
+			const buttonStyle = {
+				fontSize:"16px",
+				backgroundColor:"#00a5ab",
+				width: "100px",
+				margin:"10px",
+				color:"white",
+				padding:"15px",
+				borderRadius:"30px"
+			};
+		*/
+		.counterButton{
+			font-size:16px;
+			background-color:#00a5ab;
+			width: 100px;
+			margin:10px;
+			color:white;
+			padding:15px;
+			border-radius:30px;
+			border-color: black;
+			border-width: 5px;
+		}
+		.count{
+			font-size:150px;
+			padding:20px;
+		}
+		
+------------------------------------------------------------------------------------------------------------
+Define CSS in JSX
+	
+		const customStyle = {
+			backgroundColor: "green",
+			fontSize: "16px",
+			padding: "15px 30px",
+			color: "white",
+			width: "100px",
+			border: "1px solid #666666",
+			borderRadius: "30px",
+		};
+		<button style={customStyle}>+1</button>
+		<button className="cssClass">+1</button>
+		
+	Options of styling your React components
+		1: style
+			Error: <button style={border-radius:30px}>
+			Correct Syntax: <button style={{borderRadius:"30px"}>
+			
+		2: className
+			Define the cssClass in your component CSS file
+			
+------------------------------------------------------------------------------------------------------------
+Understanding State in React
+	
+	State: Built-in React object used to contain data or information about the component
+	
+	(REMEMBER) In earlier versions of React, ONLY Class Components can have state
+		AND implementing state was very complex!
+		
+	Hooks were introduced in React 16.8
+		Hooks are very easy to use
+		
+		useState hook allows adding state to Function Components
+			useState returns two things
+				1: Current state
+				2: A function to update state
+
+		Each instance of component has it's own state
+		
+		How to share state between components?
+			Move state “upwards” (to a parent component)
+------------------------------------------------------------------------------------------------------------
+Changes in Counter.jsx
+
+	// [0,f]
+	// const state = useState(0);
+
+	// const array=[1,2]
+	// const FirstElement=array[0]
+	// const SecondElement=array[1]
+	// //or
+	// const [FirstElement,SecondElement]=array
+
+	const [count,setCount] = useState(0);
+	function incrementCounterFunction(){
+		// state[1](state[0]+1)
+		// console.log(state[0])
+		// console.log(state[1])
+		// console.log('increment clicked')
+		setCount(count + 1)
+		// console.log(count)
+	}
+	function decrementCounterFunction(){
+		setCount(count - 1)
+	}
+	return(
+		<div className="Counter">
+			<span className="count">{count}</span>
+			<div>
+				<button className="counterButton" 
+						onClick={incrementCounterFunction} 
+//                        style = {{fontSize:"30px"}} 
+//                        style = {buttonStyle}
+				>
+					+1
+				</button>
+				
+				<button className="counterButton" 
+						onClick={decrementCounterFunction} 
+				>
+					-1
+				</button>
+
+			</div>
+					
+		</div>
+	)
+	
+------------------------------------------------------------------------------------------------------------
