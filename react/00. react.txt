@@ -704,3 +704,214 @@ Changes in Counter.jsx
 	)
 	
 ------------------------------------------------------------------------------------------------------------
+What's happening in the background with React?
+
+	We updated the state => React updated the view
+		How can we update an HTML element?
+			A HTML page is represented by DOM (Document Object Model)
+			Each element in a HTML page is a node in the DOM
+			We need to update the DOM to update the element
+			HOWEVER, writing code to update the DOM can be complex and slow!
+		
+		React takes a different approach:
+			Virtual DOM: “virtual” representation of a UI (kept in memory)
+				React code updates Virtual DOM
+				
+			React identifies changes and synchronizes them to HTML page
+				1: React creates Virtual DOM v1 on load of page
+				2: We perform an action
+					3: React creates Virtual DOM v2 as a result of your action
+					4: React performs a di between v1 and v2
+					5: React synchronizes changes (updates HTML page)
+		
+	Summary: We are NOT updating the DOM directly!
+		React identifies changes and efficiently updates the DOM
+		
+------------------------------------------------------------------------------------------------------------
+Enhancing Counter Example
+	1: Create multiple counter buttons
+	2: Have a different increment value for each button
+	3: Have common state for all our buttons
+------------------------------------------------------------------------------------------------------------
+Exploring React props
+
+		<PlayingWithProps prop1="value1" prop2="value2" />
+		function PlayingWithProps({ prop1, prop2 }) {
+			return (<>{prop1} {prop2}</>)
+		}
+		function CounterButton({ incrementBy}) {...}
+		<CounterButton incrementBy={2}>
+		Counter.defaultProps = {
+			incrementBy: 1,
+		};
+		Counter.propTypes = {
+			incrementBy: PropTypes.number,
+		};
+	
+	You can pass “props” (short for properties) object to a React Component
+	
+	Used for things that remain a constant during lifetime of a component
+		Example increment value of a specific component
+
+------------------------------------------------------------------------------------------------------------
+In App.js 
+
+	import './App.css';
+	import Counter from './components/counter/Counter';
+	function App() {
+	  return(
+		<div className="App">
+		  {/*<PlayingWithProps property1="value1" property2="value2"/>*/}
+		  <Counter />
+		  <Counter by={2}/>
+		  <Counter by={5}/>
+		</div>
+	  )
+	}
+	// function PlayingWithProps(properties){
+	//   console.log(properties)
+	//   console.log(properties.property1) 
+	//   console.log(properties.property2) 
+	//   return(
+	//     <div></div>
+	//   )
+	// }
+	// function PlayingWithProps({property1,property2}){
+	// //  console.log(properties)
+	//   console.log(property1) 
+	//   console.log(property2) 
+	//   return(
+	//     <div></div>
+	//   )
+	// }
+	export default App;
+	
+In Counter.jsx 
+
+	import { useState } from 'react';
+	import './Counter.css';
+	import {PropTypes} from 'prop-types';
+	export default function Counter({by=1}){
+		console.log("Received prop 'by':", by);
+		console.log("Type of by:", typeof by);
+		const [count,setCount] = useState(0);
+		console.log(by);
+
+		function incrementCounterFunction(){
+			setCount(count + by)
+		}
+		function decrementCounterFunction(){
+			setCount(count - by)
+		}
+		return(
+			<div className="Counter">
+				<span className="count">{count}</span>
+				<div>
+					<button className="counterButton" onClick={incrementCounterFunction}>+{by}</button>
+					<button className="counterButton" onClick={decrementCounterFunction}>-{by}</button>
+				</div>  
+			</div>
+		)
+	};
+	//setting default by defaultProps is not working for some reason, 
+	//so we are using Explicit Default in Function Parameters
+	// Counter.defaultProps = {
+	//     by: 1
+	// };
+	Counter.propTypes = {
+		by: PropTypes.number,
+	};
+
+------------------------------------------------------------------------------------------------------------
+Moving State Up and More...
+	How can we have one state for all counters?
+		1: Rename Counter to CounterButton
+		
+		2: Calling a parent component method
+			<CounterButton incrementMethod={increment}>
+			
+		3: Exercise: CounterButton as separate module
+		
+		4: Exercise: Adding Reset Button
+		
+		5: Remove State From Child
+		
+		6: Directly Call Parent Methods
+
+------------------------------------------------------------------------------------------------------------
+Changes in App.js
+	
+	function App() {
+	  return(
+		<div className="App">
+		  {/*<PlayingWithProps property1="value1" property2="value2"/>*/}
+		  <Counter />
+		</div>
+	  )
+	}
+	
+Changes in Counter.jsx
+	
+	export default function Counter(){
+		const [count,setCount] = useState(0);
+		function incrementCounterParentFunction(by){
+			setCount(count + by)
+		}
+		function derementCounterParentFunction(by){
+			setCount(count - by)
+		}
+		// function someMethodInParent(){
+		//     console.log('ParentMethodCalled');
+		// }
+		return(
+			<>
+				<span className="totalCount">{count}</span> 
+				<CounterButton 
+						incrementMethod={incrementCounterParentFunction} 
+						decrementMethod={derementCounterParentFunction}/>
+				<CounterButton by={2} 
+						incrementMethod={incrementCounterParentFunction} 
+						decrementMethod={derementCounterParentFunction}/>
+				<CounterButton by={5} 
+						incrementMethod={incrementCounterParentFunction} 
+						decrementMethod={derementCounterParentFunction}/> 
+			</>
+		)
+	}
+	function CounterButton({by=1,incrementMethod,decrementMethod}){
+		const [count,setCount] = useState(0);
+
+		function incrementCounterFunction(){
+			setCount(count + by);
+			incrementMethod(by);
+		}
+		function decrementCounterFunction(){
+			setCount(count - by);
+			decrementMethod(by);
+		}
+		return(
+			<div className="Counter">
+				{/*<span className="count">{count}</span>*/}
+				<div>
+					<button className="counterButton" onClick={incrementCounterFunction} 
+	//                        style = {{fontSize:"30px"}} 
+	//                        style = {buttonStyle}
+					>+{by}</button>
+					<button className="counterButton" onClick={decrementCounterFunction}>-{by}</button>
+				</div>  
+			</div>
+		)
+	};
+	//setting default by defaultProps is not working for some reason, 
+	//so we are using Explicit Default in Function Parameters
+	// CounterButton.defaultProps = {
+	//     by: 1
+	// };
+	CounterButton.propTypes = {
+		by: PropTypes.number,
+	};
+------------------------------------------------------------------------------------------------------------
+
+Moving The CounterButton to CounterButton.jsx
+	
+	Move the entire function to the JSX
