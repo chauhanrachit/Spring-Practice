@@ -1,10 +1,25 @@
-import { useState } from 'react';
-import './Counter.css';
 import {PropTypes} from 'prop-types';
 
+CounterButton.propTypes = {
+    by: PropTypes.number,
+}
+
 export default function CounterButton({by=1,incrementMethod,decrementMethod}){
-    console.log("Received prop 'by':", by);
-    console.log("Type of by:", typeof by);
+    return(
+        <div className="Counter">
+            {/*<span className="count">{count}</span>*/}
+            <div>
+                {/*<button className="counterButton" onClick={incrementCounterFunction} */}
+                <button className="counterButton" onClick={()=>incrementMethod(by)}
+//                        style = {{fontSize:"30px"}} 
+//                        style = {buttonStyle}
+                >+{by}</button>
+                <button className="counterButton" onClick={()=>incrementMethod(by)}>-{by}</button>
+            </div>  
+        </div>
+    )
+    // console.log("Received prop 'by':", by);
+    // console.log("Type of by:", typeof by);
 
     /*
     const buttonStyle = {
@@ -29,30 +44,18 @@ export default function CounterButton({by=1,incrementMethod,decrementMethod}){
     // //or
     // const [FirstElement,SecondElement]=array
 
-    const [count,setCount] = useState(0);
-    console.log(by);
+    // const [count,setCount] = useState(0);
 
-    function incrementCounterFunction(){
-        // state[1](state[0]+1)
-        setCount(count + by);
-        incrementMethod(by);
-    }
-    function decrementCounterFunction(){
-        setCount(count - by);
-        decrementMethod(by);
-    }
-    return(
-        <div className="Counter">
-            {/*<span className="count">{count}</span>*/}
-            <div>
-                <button className="counterButton" onClick={incrementCounterFunction} 
-//                        style = {{fontSize:"30px"}} 
-//                        style = {buttonStyle}
-                >+{by}</button>
-                <button className="counterButton" onClick={decrementCounterFunction}>-{by}</button>
-            </div>  
-        </div>
-    )
+    // function incrementCounterFunction(){
+    //     // state[1](state[0]+1)
+    //     // setCount(count + by);
+    //     incrementMethod(by);
+    // }
+    // function decrementCounterFunction(){
+    //     // setCount(count - by);
+    //     decrementMethod(by);
+    // }
+                    //return moved to the top
 };
 
 
@@ -62,7 +65,5 @@ export default function CounterButton({by=1,incrementMethod,decrementMethod}){
 //     by: 1
 // };
 
-CounterButton.propTypes = {
-    by: PropTypes.number,
-};
+
 

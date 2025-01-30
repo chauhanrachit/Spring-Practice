@@ -11,6 +11,9 @@ export default function Counter(){
     function derementCounterParentFunction(by){
         setCount(count - by)
     }
+    function resetCounter(by){
+        setCount(0)
+    }
     // function someMethodInParent(){
     //     console.log('ParentMethodCalled');
     // }
@@ -26,6 +29,7 @@ export default function Counter(){
             <CounterButton by={5} 
                     incrementMethod={incrementCounterParentFunction} 
                     decrementMethod={derementCounterParentFunction}/> 
+            <button className="resetButton" onClick={resetCounter}>Reset</button>
         </>
     )
 }
