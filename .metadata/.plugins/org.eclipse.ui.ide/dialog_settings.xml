@@ -8,6 +8,10 @@
 		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
 		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
 		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="D:\Spring Practice\restful-web-services"/>
+			<item value="D:\MyFolder\Projects\restful-web-services"/>
+			<item value="D:\MyFolder\Projects\Todo Web Application"/>
+			<item value="D:\MyFolder\Projects\myfirstwebapp"/>
 			<item value="D:\Spring Practice\myfirstwebapp"/>
 			<item value="D:\Spring Practice\learn-jpa-hibernate"/>
 		</list>
