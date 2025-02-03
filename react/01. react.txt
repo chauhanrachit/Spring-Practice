@@ -1,0 +1,425 @@
+React Developer Tools - Chrome Extension
+
+	Chrome Developer Tools extension for React
+	
+	Goal: Inspect React Component Hierarchies
+	
+	Components tab shows:
+		Root React components
+		Sub components that were rendered
+		
+	For each component, you can see and edit
+		props
+		state
+		
+	Useful for:
+		Understanding and Learning React
+		Debugging problems
+
+--------------------------------------------------------------------------------------------------------------------
+Todo Management React App - First Steps
+	
+	1: Counter example - What did we learn?
+		Basics of Components
+			View (JSX)
+			Styling (CSS)
+			State
+			Props
+		
+	2: Todo Management App - What will we learn?
+		Routing
+		Forms
+		Validation
+		REST API calls
+		Authentication
+		& a lot more...
+--------------------------------------------------------------------------------------------------------------------
+Getting Started with Todo App - Components
+
+	Starting with your TodoApp
+		1: LoginComponent
+			Make LoginComponent Controlled
+				Link form fields with state
+			Implement Hard-coded Authentication
+			Implement Conditional Rendering
+		2: WelcomeComponent
+			Implement Routing
+		3: ErrorComponent
+		4: ListTodosComponent
+		5: Add Bootstrap & style our pages
+		6: HeaderComponent
+		7: FooterComponent
+		8: LogoutComponent
+		
+--------------------------------------------------------------------------------------------------------------------
+In App.js --
+	
+	import './App.css';
+	import TodoApp from './components/todo/TodoApp';
+	function App() {
+	  return(
+		<div className="App">
+		  <TodoApp />
+		</div>
+	  )
+	}
+	export default App;
+	
+In src\components\todo\
+	
+	In src\components\todo\TodoApp.jsx
+		
+		import { useState } from "react"
+		export default function TodoApp() {
+			return(
+				<div className="TodoApp">
+					<LoginComponent />
+					{/* <WelcomeComponent /> */}
+				</div>
+			)
+		}
+		function LoginComponent() {
+			const [username,setUsername] =useState('rachit');
+			const [password,setPassword] =useState('');
+			const [showSuccessMessage,setShowSuccessMessage] =useState(false);
+			const [showErrorMessage,setShowErrorMessage] =useState(false);
+			function handleUserNameChange(event){
+				// console.log(event);
+				// console.log(event.target.value);
+				setUsername(event.target.value);
+			}
+			function handlePasswordChange(event){
+				setPassword(event.target.value);
+			}
+			function handleSubmit(){
+				if(username==='rachit' && password==='rachit'){
+					console.log('success');
+					setShowSuccessMessage(true);
+					setShowErrorMessage(false);
+				}
+				else {
+					console.log('failed');
+					setShowSuccessMessage(false);
+					setShowErrorMessage(true);
+				}
+			}
+			function SuccessMessageComponont(){
+				if(showSuccessMessage){
+					return <div className="successMessage">Authenticated Successfully.</div>
+				}
+				return null
+			}
+			function ErrorMessageComponont(){
+				if(showErrorMessage){
+					return <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div>
+				}
+				return null
+			}
+			return(
+				<div className="Login">
+					<SuccessMessageComponont />
+                    <ErrorMessageComponont />
+					<div className="LoginForm">
+						<div>
+							<label>User Name</label>
+							<input type="text" name="username" value={username} onChange={handleUserNameChange}/>
+						</div>
+						<div>
+							<label>Password</label>
+							<input type="password" name="password" value={password} onChange={handlePasswordChange}/>
+						</div>
+						<div>
+							<button type="button" name="login" onClick={handleSubmit}>Login</button>
+						</div>
+					</div>
+				</div>
+			)
+		}
+		function WelcomeComponent() {
+			return(
+				<div className="Welcome">Welcome Component</div>
+			)
+		}
+
+	src\components\todo\TodoApp.css
+		
+		label, input, button {
+			margin: 10px;
+			padding: 5px;
+		}
+--------------------------------------------------------------------------------------------------------------------
+In TodoApp.jsx
+
+	import { useState } from "react"
+	export default function TodoApp() {
+		return(
+			<div className="TodoApp">
+				<LoginComponent />
+				{/* <WelcomeComponent /> */}
+			</div>
+		)
+	}
+	function LoginComponent() {
+		const [username,setUsername] =useState('rachit');
+		const [password,setPassword] =useState('');
+		const [showSuccessMessage,setShowSuccessMessage] =useState(false);
+		const [showErrorMessage,setShowErrorMessage] =useState(false);
+		function handleUserNameChange(event){
+			// console.log(event);
+			// console.log(event.target.value);
+			setUsername(event.target.value);
+		}
+		function handlePasswordChange(event){
+			setPassword(event.target.value);
+		}
+		function handleSubmit(){
+			if(username==='rachit' && password==='rachit'){
+				// console.log('success');
+				setShowSuccessMessage(true);
+				setShowErrorMessage(false);
+			}
+			else {
+				// console.log('failed');
+				setShowSuccessMessage(false);
+				setShowErrorMessage(true);
+			}
+		}
+		/*
+		In Browser Console 
+			>  true && 'rachit'
+			<. 'rachit'
+			>  false && 'rachit'
+			<. false
+		*/
+		// function SuccessMessageComponont(){
+		//     if(showSuccessMessage){
+		//         return <div className="successMessage">Authenticated Successfully.</div>
+		//     }
+		//     return null
+		// }
+
+		// function ErrorMessageComponont(){
+		//     if(showErrorMessage){
+		//         return <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div>
+		//     }
+		//     return null
+		// }
+		return(
+			<div className="Login">
+				{/* <SuccessMessageComponont />
+				<ErrorMessageComponont /> */}
+				{showSuccessMessage && <div className="successMessage">Authenticated Successfully.</div> }
+				{showErrorMessage && <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div> }
+				<div className="LoginForm">
+					<div>
+						<label>User Name</label>
+						<input type="text" name="username" value={username} onChange={handleUserNameChange}/>
+					</div>
+					<div>
+						<label>Password</label>
+						<input type="password" name="password" value={password} onChange={handlePasswordChange}/>
+					</div>
+					<div>
+						<button type="button" name="login" onClick={handleSubmit}>Login</button>
+					</div>
+				</div>
+			</div>
+		)
+	}
+	function WelcomeComponent() {
+		return(
+			<div className="Welcome">Welcome Component</div>
+		)
+	}
+--------------------------------------------------------------------------------------------------------------------
+In cmd console -
+	
+		npm install react-router-dom
+	
+	It is not working, so -->
+	
+		yarn add react-router-dom
+	
+
+In TodoApp.jsx
+
+	import { useState } from "react"
+	import './TodoApp.css';
+	import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+
+	export default function TodoApp() {
+		return(
+			<div className="TodoApp">
+				<BrowserRouter>
+					<Routes>
+						<Route path ='/' element={<LoginComponent />} ></Route>
+						<Route path ='/login' element={<LoginComponent />} ></Route>
+						<Route path ='/welcome' element={<WelcomeComponent />} ></Route>
+						<Route path ='*' element={<ErrorComponent />} ></Route>
+					</Routes>
+				</BrowserRouter>
+			</div>
+		)
+	}
+
+	function LoginComponent() {
+		const [username,setUsername] =useState('rachit');
+		const [password,setPassword] =useState('');
+		const [showSuccessMessage,setShowSuccessMessage] =useState(false);
+		const [showErrorMessage,setShowErrorMessage] =useState(false);
+
+		const navigate = useNavigate();
+
+		function handleUserNameChange(event){
+			setUsername(event.target.value);
+		}
+		function handlePasswordChange(event){
+			setPassword(event.target.value);
+		}
+		function handleSubmit(){
+			if(username==='rachit' && password==='rachit'){
+				setShowSuccessMessage(true);
+				setShowErrorMessage(false);
+				navigate('/welcome');
+			}
+			else {
+				setShowSuccessMessage(false);
+				setShowErrorMessage(true);
+			}
+		}
+		/*
+		In Browser Console 
+			>  true && 'rachit'
+			<. 'rachit'
+			>  false && 'rachit'
+			<. false
+		*/
+		// function SuccessMessageComponont(){
+		//     if(showSuccessMessage){
+		//         return <div className="successMessage">Authenticated Successfully.</div>
+		//     }
+		//     return null
+		// }
+
+		// function ErrorMessageComponont(){
+		//     if(showErrorMessage){
+		//         return <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div>
+		//     }
+		//     return null
+		// }
+		return(
+			<div className="Login">
+				<h1>Login Page</h1>
+				{/* <SuccessMessageComponont />
+				<ErrorMessageComponont /> */}
+				{showSuccessMessage && <div className="successMessage">Authenticated Successfully.</div> }
+				{showErrorMessage && <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div> }
+				<div className="LoginForm">
+					<div>
+						<label>User Name</label>
+						<input type="text" name="username" value={username} onChange={handleUserNameChange}/>
+					</div>
+					<div>
+						<label>Password</label>
+						<input type="password" name="password" value={password} onChange={handlePasswordChange}/>
+					</div>
+					<div>
+						<button type="button" name="login" onClick={handleSubmit}>Login</button>
+					</div>
+				</div>
+			</div>
+		)
+	}
+	function WelcomeComponent() {
+		return(
+			<div className="WelcomeComponent">
+				<h1>Welcome</h1>
+				<div>Welcome Component</div>
+			</div>
+		)
+	}
+	function ErrorComponent() {
+		return(
+			<div className="ErrorComponent">
+				<h1>We are working really hard!</h1>
+				<div>
+					Apologies for the 404. Reach out to our team at ABC-DEF-_GHIJ.
+				</div>
+			</div>
+		)
+	}
+--------------------------------------------------------------------------------------------------------------------
+Changes in TodoApp.jsx 
+	
+	export default function TodoApp() {
+		return(
+			<div className="TodoApp">
+				<BrowserRouter>
+					<Routes>
+						<Route path ='/' element={<LoginComponent />} ></Route>
+						<Route path ='/login' element={<LoginComponent />} ></Route>
+						<Route path ='/welcome/:username' element={<WelcomeComponent />} ></Route>
+						<Route path ='*' element={<ErrorComponent />} ></Route>
+					</Routes>
+				</BrowserRouter>
+			</div>
+		)
+	}
+	function LoginComponent() {
+		const [username,setUsername] =useState('rachit');
+		const [password,setPassword] =useState('');
+		const [showSuccessMessage,setShowSuccessMessage] =useState(false);
+		const [showErrorMessage,setShowErrorMessage] =useState(false);
+		const navigate = useNavigate();
+		function handleUserNameChange(event){
+			setUsername(event.target.value);
+		}
+		function handlePasswordChange(event){
+			setPassword(event.target.value);
+		}
+		function handleSubmit(){
+			if(username==='rachit' && password==='rachit'){
+				setShowSuccessMessage(true);
+				setShowErrorMessage(false);
+				navigate(`/welcome/${username}`);
+			}
+			else {
+				setShowSuccessMessage(false);
+				setShowErrorMessage(true);
+			}
+		}
+		return(
+			<div className="Login">
+				<h1>Login Page</h1>
+				{showSuccessMessage && <div className="successMessage">Authenticated Successfully.</div> }
+				{showErrorMessage && <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div> }
+				<div className="LoginForm">
+					<div>
+						<label>User Name</label>
+						<input type="text" name="username" value={username} onChange={handleUserNameChange}/>
+					</div>
+					<div>
+						<label>Password</label>
+						<input type="password" name="password" value={password} onChange={handlePasswordChange}/>
+					</div>
+					<div>
+						<button type="button" name="login" onClick={handleSubmit}>Login</button>
+					</div>
+				</div>
+			</div>
+		)
+	}
+	function WelcomeComponent() {
+		// const params = useParams();
+		// console.log(params.username);
+		const {username} = useParams();
+		console.log(username);
+
+		return(
+			<div className="WelcomeComponent">
+				<h1>Welcome {username}</h1>
+				<div>Welcome Component</div>
+			</div>
+		)
+	}
+--------------------------------------------------------------------------------------------------------------------
