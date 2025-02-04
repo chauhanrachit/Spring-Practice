@@ -423,3 +423,219 @@ Changes in TodoApp.jsx
 		)
 	}
 --------------------------------------------------------------------------------------------------------------------
+In TodoApp.jsx
+	
+	//Change in Routes in export default function 
+				<Routes>
+                    <Route path ='/' element={<LoginComponent />} />
+                    <Route path ='/login' element={<LoginComponent />} />
+                    <Route path ='/welcome/:username' element={<WelcomeComponent />} />
+                    <Route path ='/todos' element={<ListTodosComponent />} />
+                    <Route path ='*' element={<ErrorComponent />} />
+                </Routes>
+				
+	function WelcomeComponent() {
+		// const params = useParams();
+		// console.log(params.username);
+		const {username} = useParams();
+		console.log(username);
+
+		return(
+			<div className="WelcomeComponent">
+				<h1>Welcome {username}</h1>
+				<div>
+					{/* Manage Your Todos <a href="/todos">Go Here</a> */}
+					{/* Not a Good approach as it refreshes the entire page 
+						When we are building single page application, we don't want the entire
+						page to be refreshed, only the specific component which is changing to be refreshed.
+						That is why we will use Link tag from react-router-dom */}
+					Manage Your Todos <Link to='/todos'>Go Here</Link>
+				</div>
+			</div>
+		)
+	}
+	// >  todos.forEach(element => console.log(element))
+	// VM818:1 {id: 1, description: 'Learn AWS'}
+	// VM818:1 {id: 2, description: 'Learn Full Stack Dev'}
+	// VM818:1 {id: 3, description: 'Learn DevOps'}
+	// >  todos.map(element => element.id)
+	// <. (3)[1, 2, 3]
+	function ListTodosComponent() {
+
+		const today = new Date ()
+		const targetDate = new Date (today.getFullYear()+2 , today.getMonth(), today.getDay())
+
+		const todos = [
+					{id: 1, description: 'Learn AWS', done: false, targetDate:targetDate },
+					{id: 2, description: 'Learn Full Stack Dev' , done: false, targetDate:targetDate },
+					{id: 3, description: 'Learn DevOps' , done: false, targetDate:targetDate }
+				]
+		return(
+			<div className="ListTodosComponent">
+				<h1>Things you want to Do!</h1>
+				<div>
+					<table>
+						<thead>
+							<tr>
+								<td>ID</td>
+								<td>Description</td>
+								<td>Is Done ?</td>
+								<td>Target Date</td>
+							</tr>
+						</thead>
+						<tbody>
+							{ 
+								todos.map(
+									todo => (
+										<tr key = {todo.id} >
+											<td>{todo.id}</td>
+											<td>{todo.description}</td>
+											<td>{todo.done.toString()}</td>
+											<td>{todo.targetDate.toDateString()}</td>
+										</tr>
+									)
+								)
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		)
+	}
+--------------------------------------------------------------------------------------------------------------------
+In TodoApp.jsx
+	
+	//In export default Function
+			<HeaderComponent />
+
+            <BrowserRouter>
+                <Routes>
+                    <Route path ='/' element={<LoginComponent />} />
+                    <Route path ='/login' element={<LoginComponent />} />
+                    <Route path ='/welcome/:username' element={<WelcomeComponent />} />
+                    <Route path ='/todos' element={<ListTodosComponent />} />
+                    <Route path ='/logout' element={<LogoutComponent />} />
+                    <Route path ='*' element={<ErrorComponent />} />
+                </Routes>
+            </BrowserRouter>
+            
+            <FooterComponent />
+	//		
+	
+	function HeaderComponent() {
+		return(
+			<div className="header">
+				Header <hr/>
+			</div>
+		)
+	}
+	function FooterComponent() {
+		return(
+			<div className="footer">
+				<hr/> Footer
+			</div>
+		)
+	}
+	function LogoutComponent() {
+		return(
+			<div className="LogoutComponent">
+				<h1>You are logged out!</h1>
+				<div>
+					Thank You for using our app. Come back soon!
+				</div>
+			</div>
+		)
+	}
+--------------------------------------------------------------------------------------------------------------------
+in Cmd console-
+		
+		npm install bootstrap
+		
+	But since we are not using -
+	
+		yarn add bootstrap
+		
+--------------------------------------------------------------------------------------------------------------------
+Create a Separate Component File for each component
+	
+	HeaderComponent.jsx --
+		
+		import {Link} from "react-router-dom";
+		export default HeaderComponent;
+		function HeaderComponent() {
+			return(
+				<header className="border-bottom border-light border-5 mb-5 p-2">
+					<div className="container">
+						<div className="row">
+							<nav className="navbar navbar-expand-lg">
+								<a className="navbar-brand ms-2 fs-2 fw-bold text-black" href="https://www.google.com">google</a>
+								<div className="collapse navbar-collapse">
+									<ul className="navbar-nav">
+										<li className="nav-item  fs-5">
+											<Link className="nav-link" to="/welcome/rachit">Home</Link>
+										</li>
+										<li className="nav-item  fs-5">
+											<Link className="nav-link" to="/todos">Todos</Link>
+										</li>
+									</ul>
+								</div>
+								<ul className="navbar-nav">
+									<li className="nav-item fs-5">
+										<Link className="nav-link" to="/login">Login</Link>
+									</li>
+									<li className="nav-item fs-5">
+										<Link className="nav-link" to="/logout">Logout</Link>
+									</li>
+								</ul>
+							</nav>
+						</div>    
+					</div>
+				</header>
+			)
+		}
+		/*
+		function HeaderComponent() {
+			return(
+				<header className="header">
+					<div className="container">
+						<ul className="navbar-nav">
+							
+							<li className="nav-item">
+								<a className="nav-link" href="https://www.google.com">google</a>
+							</li>
+
+							<li className="nav-item">
+								<Link className="nav-link" to="/welcome/rachit">Home</Link>
+							</li>
+							<li className="nav-item">
+								<Link className="nav-link" to="/todos">Todos</Link>
+							</li>
+
+							<li className="nav-item">
+								<Link className="nav-link" to="/logout">Logout</Link>
+							</li>
+							<li className="nav-item">
+								<Link className="nav-link" to="/login">Login</Link>
+							</li>
+
+						</ul>
+					</div>
+				</header>
+			)
+		}
+		*/
+	
+	FooterComponent.jsx --
+		
+		export default FooterComponent;
+		function FooterComponent() {
+			return (
+				<footer className="footer">
+					<div className="container">
+						Your Footer
+					</div>
+				</footer>
+			);
+		}
+		
+--------------------------------------------------------------------------------------------------------------------
