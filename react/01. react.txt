@@ -639,3 +639,259 @@ Create a Separate Component File for each component
 		}
 		
 --------------------------------------------------------------------------------------------------------------------
+From here on, setting Authentication on the basis of Login - 
+
+In src\components\todo\security\AuthContext.js
+		
+		import { createContext, useContext, useState } from "react";
+
+		//1: Create a context
+		export const AuthContext = createContext()
+		export const useAuth = () => useContext(AuthContext)
+
+		//2: Share the created context with other components
+		export default function AuthProvider( { children } ){
+
+			//3: Put some state in the context
+			const [number, setNumber] = useState(10)
+			const [isAuthenticated, setAuthenticated] = useState(false)
+			// setInterval( () => setNumber(number+1), 10000)
+
+			// const valueToBeShared = { number,isAuthenticated,setAuthenticated }
+			// return (
+			//     <AuthContext.Provider value = { valueToBeShared }>
+			//         { children }
+			//     </AuthContext.Provider>
+			// ) 
+			return (
+				<AuthContext.Provider value = { { number,isAuthenticated,setAuthenticated } }>
+					{ children }
+				</AuthContext.Provider>
+			)
+		}
+
+In TodoApp.jsx
+
+			<AuthProvider>
+                <BrowserRouter>
+                    <All the lines here remain the same>
+                </BrowserRouter>
+            </AuthProvider>
+			
+In FooterComponent.jsx
+
+		// const authContext = useContext(AuthContext)
+		const authContext = useAuth()
+		console.log(`Footer Component - ${authContext.number}`)
+
+		return (
+			<footer className="footer">
+				<div className="container">
+					Your Footer
+				</div>
+			</footer>
+		);
+		
+In HeaderComponent.jsx
+		
+		function HeaderComponent() {
+
+			// const authContext = useContext(AuthContext)
+			const authContext = useAuth()
+
+			// console.log(authContext.number)
+			console.log(authContext)
+		//everything else is same here
+
+
+======================================
+Further Changes --
+
+	LoginComponent.jsx 
+		
+		function LoginComponent() {
+			
+			//Adding these 2 lines, and using setAuthenticated to Authenticate, other part reamins same
+			const navigate = useNavigate()
+			const authContext = useAuth()
+
+			function handleSubmit(){
+				if(username==='rachit' && password==='rachit'){
+					authContext.setAuthenticated(true)
+
+					setShowSuccessMessage(true)
+					setShowErrorMessage(false)
+					navigate(`/welcome/${username}`)
+				}
+				else {
+					authContext.setAuthenticated(false)
+
+					setShowSuccessMessage(false)
+					setShowErrorMessage(true)
+				}
+				
+	HeaderComponent.jsx
+		
+		function HeaderComponent() {
+			// const authContext = useContext(AuthContext)
+			const authContext = useAuth()
+			const isAuthenticated = authContext.isAuthenticated
+			// console.log(authContext.number)
+			// console.log(authContext)
+			function logout(){
+				authContext.setAuthenticated(false)
+			}
+			return(
+				<header className="border-bottom border-light border-5 mb-5 p-2">
+					<div className="container">
+						<div className="row">
+							<nav className="navbar navbar-expand-lg">
+								<a className="navbar-brand ms-2 fs-2 fw-bold text-black" href="https://www.google.com">google</a>
+								<div className="collapse navbar-collapse">
+									<ul className="navbar-nav">
+										<li className="nav-item  fs-5">
+											{isAuthenticated && <Link className="nav-link" to="/welcome/rachit">Home</Link>}
+										</li>
+										<li className="nav-item  fs-5">
+											{isAuthenticated && <Link className="nav-link" to="/todos">Todos</Link>}
+										</li>
+									</ul>
+								</div>
+								<ul className="navbar-nav">
+									<li className="nav-item fs-5">
+										{!isAuthenticated && <Link className="nav-link" to="/login">Login</Link>}
+									</li>
+									<li className="nav-item fs-5">
+										{isAuthenticated && <Link className="nav-link" to="/logout" onClick={logout}>Logout</Link>}
+									</li>
+								</ul>
+							</nav>
+						</div>    
+					</div>
+				</header>
+			)
+		}
+--------------------------------------------------------------------------------------------------------------------
+Changes In AuthContext.jsx
+	
+	export default function AuthProvider( { children } ){
+		//3: Put some state in the context
+		const [isAuthenticated, setAuthenticated] = useState(false)
+		function login (username, password){
+			if(username==='rachit' && password==='rachit'){
+				setAuthenticated(true)
+				return true 
+			}
+			else {
+				setAuthenticated(false)
+				return false;
+			}
+		}
+		function logout (){
+			setAuthenticated(false)
+		}
+		return (
+			<AuthContext.Provider value = { {isAuthenticated, login, logout} }>
+				{ children }
+			</AuthContext.Provider>
+		)
+	}
+	
+In LoginComponent.jsx
+
+	function LoginComponent() {
+		const [username,setUsername] =useState('rachit')
+		const [password,setPassword] =useState('')
+		const [showErrorMessage,setShowErrorMessage] =useState(false)
+		const navigate = useNavigate()
+
+		const authContext = useAuth()
+
+		function handleUserNameChange(event){
+			setUsername(event.target.value)
+		}
+		function handlePasswordChange(event){
+			setPassword(event.target.value)
+		}
+		function handleSubmit(){
+			if(authContext.login(username,password)){
+				setShowErrorMessage(false)
+				navigate(`/welcome/${username}`)
+			}
+			else {
+				setShowErrorMessage(true)
+			}
+		}
+		return(
+			<div className="Login">
+				<h1>Login Page</h1>
+				{showErrorMessage && <div className="errorMessage">Authenticatation Failed. Please ckeck your credentials.</div> }
+				<div className="LoginForm">
+					<div>
+						<label>User Name</label>
+						<input type="text" name="username" value={username} onChange={handleUserNameChange}/>
+					</div>
+					<div>
+						<label>Password</label>
+						<input type="password" name="password" value={password} onChange={handlePasswordChange}/>
+					</div>
+					<div>
+						<button type="button" name="login" onClick={handleSubmit}>Login</button>
+					</div>
+				</div>
+			</div>
+		)
+	}
+	
+In HeaderComponent.jsx
+
+	function HeaderComponent() {
+		const authContext = useAuth()
+		const isAuthenticated = authContext.isAuthenticated
+		function logout(){
+			authContext.logout()
+		}
+--------------------------------------------------------------------------------------------------------------------
+To stop access of pages without authentication
+
+	In TodoApp.jsx
+		
+		export default function TodoApp() {
+
+			function AuthenticatedRoute({children}){
+				const authContext = useAuth()
+				if(authContext.isAuthenticated)
+					return children
+				return <Navigate to="/" />
+			}
+			return(
+				<div className="TodoApp">
+					<AuthProvider>
+						<BrowserRouter>
+							<HeaderComponent />
+							<Routes>
+								<Route path ='/' element={<LoginComponent />} />
+								<Route path ='/login' element={<LoginComponent />} />
+
+								<Route path ='/welcome/:username' element={
+									<AuthenticatedRoute>
+										<WelcomeComponent /> 
+									</AuthenticatedRoute> } />
+								<Route path ='/todos' element={
+									<AuthenticatedRoute>
+										<ListTodosComponent />
+									</AuthenticatedRoute> } />
+								<Route path ='/logout' element={
+									<AuthenticatedRoute>  
+										<LogoutComponent />
+									</AuthenticatedRoute> } />
+
+								<Route path ='*' element={<ErrorComponent />} />
+							</Routes>
+							<FooterComponent />
+						</BrowserRouter>
+					</AuthProvider>
+				</div>
+			)
+		}
+--------------------------------------------------------------------------------------------------------------------

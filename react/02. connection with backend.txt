@@ -1,0 +1,123 @@
+Create a project with basic helloworld, todo rest api, from the previous projects.
+	
+	In WelcomeComponent.jsx
+		
+		function WelcomeComponent() {
+			const {username} = useParams();
+			function callHelloWorldRestApi(){
+			}
+			return(
+				<div className="WelcomeComponent">
+					<h1>Welcome {username}</h1>
+					<div>
+						Manage Your Todos <Link to='/todos'>Go Here</Link>
+					</div>
+					<div>
+						<button className="btn btn-success m-5" onClick={callHelloWorldRestApi}>Call Hello World</button>
+					</div>
+				</div>
+			)
+		}
+		
+To call REST API-
+	
+	One of the most popular frameword used along with react to call REST API is called 'Axios'
+	
+	To make use of Axios, we need to add a dependency for axios
+		
+		In cmd prompt, where react frotend in executing --
+			
+			npm install axios
+		
+		since it is not working for my system I will use --
+			
+			yarn add axios
+			
+--------------------------------------------------------------------------------------------------------------------
+In WelcomeComponent.jsx
+
+		export default WelcomeComponent;
+		function WelcomeComponent() {
+			const {username} = useParams();
+			function callHelloWorldRestApi(){
+				axios.get('http://localhost:8080/hello-world')
+					.then(  (response) => successfulResponse(response)  )
+					.catch( (error) => errorResponse(error)  )
+					.finally(   () => console.log('cleanup')  )
+			}
+			function successfulResponse(response){	console.log(response)	}
+			function errorResponse(error){	console.log(error)	}
+			return(
+				<div className="WelcomeComponent">
+					<h1>Welcome {username}</h1>
+					<div>Manage Your Todos <Link to='/todos'>Go Here</Link></div>
+					<div>
+						<button className="btn btn-success m-5" onClick={callHelloWorldRestApi}>Call Hello World</button>
+					</div>
+				</div>
+			)
+		}
+		
+In RestfulWebServicesApplication.java
+
+		public class RestfulWebServicesApplication {
+			public static void main(String[] args) {
+				SpringApplication.run(RestfulWebServicesApplication.class, args);
+			}
+			//http://localhost:3000/ to 8080
+			//Cross Origin Requests
+			//Allow all requests only from 3000
+			//Ctrl+Shift+t -> Search 'WMC' and select the interface 'WebMvcConfigurer'
+			@Bean
+			public WebMvcConfigurer corsConfigurer() {
+				return new WebMvcConfigurer() {
+					public void addCorsMappings(CorsRegistry registry) {
+						registry.addMapping("/**")
+							.allowedMethods("*")
+							.allowedOrigins("http://localhost:3000");
+					}
+				};
+			}
+		}
+--------------------------------------------------------------------------------------------------------------------
+In WelcomeComponent.jsx 
+
+		function WelcomeComponent() {
+			const {username} = useParams();
+			const [message, setMessage] = useState(null)
+			function callHelloWorldRestApi(){
+				axios.get('http://localhost:8080/hello-world')
+					.then(  (response) => successfulResponse(response)  )
+					.catch( (error) => errorResponse(error)  )
+					.finally(   () => console.log('cleanup')  )
+			}
+			function callHelloWorldBean(){
+				axios.get('http://localhost:8080/hello-world-bean')
+					.then(  (response) => successfulResponse(response)  )
+					.catch( (error) => errorResponse(error)  )
+					.finally(   () => console.log('cleanup')  )
+			}
+			function successfulResponse(response){
+				//setMessage(response.data)
+				console.log(response)
+				console.log(response.data)
+				console.log(response.data.message)
+			}
+			function errorResponse(error){
+				//setMessage(error)
+				console.log(error)
+			}
+			return(
+				<div className="WelcomeComponent">
+					<h1>Welcome {username}</h1>
+					<div>Manage Your Todos <Link to='/todos'>Go Here</Link></div>
+					<div>
+						<button className="btn btn-success m-5" onClick={callHelloWorldRestApi}>Call Hello World</button>
+					</div>
+					<div>
+						<button className="btn btn-success m-5" onClick={callHelloWorldBean}>Call Hello World Bean</button>
+					</div>
+					<div className="text-info">{message}</div>
+				</div>
+			)
+		}
