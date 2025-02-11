@@ -1,15 +1,20 @@
 import { useEffect , useState } from "react"
 import { retriveAllTodosForUsernameApi, deleteTodoApi } from "./api/TodoApiService"
+import {useAuth} from "./security/AuthContext"
+import {useNavigate} from "react-router-dom";
 
 export default ListTodosComponent;
 function ListTodosComponent() {
     const [todos, setTodos] =  useState([])
     const [message, setMessage] =  useState(null)
+    const authContext = useAuth()
+    const username = authContext.username
+    const navigate = useNavigate()
     useEffect(
         () => {refreshTodos()},[]
     )
     function refreshTodos(){
-        retriveAllTodosForUsernameApi('Rachit')
+        retriveAllTodosForUsernameApi(username)
             .then( response => {
                 setTodos(response.data)
             })
@@ -17,7 +22,7 @@ function ListTodosComponent() {
     }
     function deleteTodo(id){
         console.log(id);
-        deleteTodoApi('Rachit',id)
+        deleteTodoApi(username,id)
             .then(
                 () => {
                     setMessage(`Delete of Todo with Id = ${id} is successful`);
@@ -27,6 +32,10 @@ function ListTodosComponent() {
                 //2. Update Todos List
             )
             .catch( (error) => console.log(error)  )
+    }
+    function updateTodo(id){
+        console.log(id);
+        navigate(`/todo/${id}`)
     }
     return(
         <div className="container">
@@ -40,6 +49,7 @@ function ListTodosComponent() {
                             <th>Is Done ?</th>
                             <th>Target Date</th>
                             <th>Delete</th>
+                            <th>Update</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -53,6 +63,8 @@ function ListTodosComponent() {
                                         <td>{todo.targetDate.toString()}</td>
                                         <td><button className="btn btn-warning" 
                                                 onClick ={() => deleteTodo(todo.id)} >Delete</button></td>
+                                        <td><button className="btn btn-success" 
+                                                onClick ={() => updateTodo(todo.id)} >Update</button></td>
                                     </tr>
                                 )
                             )

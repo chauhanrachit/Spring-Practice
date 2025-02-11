@@ -315,3 +315,237 @@ In ListTodosComponent.jsx
 		)
 	}
 --------------------------------------------------------------------------------------------------------------------
+In TodoApiService.js
+	
+	export const retrieveTodoApi
+        = (username,id) =>  apiClient.get(`/users/${username}/todos/${id}`)
+
+
+In AuthContext.js
+
+	export default function AuthProvider( { children } ){
+		//3: Put some state in the context
+		const [isAuthenticated, setAuthenticated] = useState(false)
+		const [username, setUsername] = useState(null)
+		function login (username, password){
+			if(username==='rachit' && password==='rachit'){
+				setAuthenticated(true)
+				setUsername(username)
+				return true 
+			}
+			else {
+				setAuthenticated(false)
+				setUsername(null)
+				return false;
+			}
+		}
+		function logout (){
+			setAuthenticated(false)
+		}
+		return (
+			<AuthContext.Provider value = { {isAuthenticated, login, logout, username} }>
+				{ children }
+			</AuthContext.Provider>
+		)
+	}
+
+In TodoApp.jsx
+
+						<Route path ='/todo/:id' element={
+                            <AuthenticatedRoute>
+                                <TodoComponent />
+                            </AuthenticatedRoute> } />
+
+ListTodosComponent.jsx
+
+	export default ListTodosComponent;
+	function ListTodosComponent() {
+		const [todos, setTodos] =  useState([])
+		const [message, setMessage] =  useState(null)
+		const authContext = useAuth()
+		const username = authContext.username
+		const navigate = useNavigate()
+		useEffect(
+			() => {refreshTodos()},[]
+		)
+		function refreshTodos(){
+			retriveAllTodosForUsernameApi(username)
+				.then( response => {
+					setTodos(response.data)
+				})
+				.catch( (error) => console.log(error)  )
+		}
+		function deleteTodo(id){
+			console.log(id);
+			deleteTodoApi(username,id)
+				.then(
+					() => {
+						setMessage(`Delete of Todo with Id = ${id} is successful`);
+						refreshTodos()
+					}
+					//1. Display success message
+					//2. Update Todos List
+				)
+				.catch( (error) => console.log(error)  )
+		}
+		function updateTodo(id){
+			console.log(id);
+			navigate(`/todo/${id}`)
+		}
+		return(
+			<div className="container">
+				<h1>Things you want to Do!</h1>
+				{message && <div className="alert alert-warning">{message}</div>}
+				<div>
+					<table className="table">
+						<thead>
+							<tr>
+								<th>Description</th>
+								<th>Is Done ?</th>
+								<th>Target Date</th>
+								<th>Delete</th>
+								<th>Update</th>
+							</tr>
+						</thead>
+						<tbody>
+							{ 
+								todos.map(
+									todo => (
+										<tr key = {todo.id} >
+											<td>{todo.description}</td>
+											<td>{todo.done.toString()}</td>
+											{/* <td>{todo.targetDate.toDateString()}</td> */}
+											<td>{todo.targetDate.toString()}</td>
+											<td><button className="btn btn-warning" 
+													onClick ={() => deleteTodo(todo.id)} >Delete</button></td>
+											<td><button className="btn btn-success" 
+													onClick ={() => updateTodo(todo.id)} >Update</button></td>
+										</tr>
+									)
+								)
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		)
+	}
+		
+		
+src\components\todo\TodoComponent.jsx
+
+	export default function TodoComponent(){
+		const {id} = useParams()
+		const [description, setDescription] = useState('')    
+		const authContext= useAuth()
+		const username = authContext.username
+		useEffect(
+			() => retrieveTodos(),
+			[id]
+			//the second value([id]) defines when the refresh takes place, 
+			//here, it will happen when id changes
+		)
+		function retrieveTodos(){
+			retrieveTodoApi(username,id)
+				.then(response => {
+					setDescription(response.data.description)
+				})
+				.catch(error => console.log(error))
+		}
+		return(
+			<div className="container">
+				<h1>Enter Todo Details</h1>
+				<div>
+					description: {description}
+				</div>
+			</div>
+		)
+	}
+	
+--------------------------------------------------------------------------------------------------------------------
+Add the libraries -- 
+
+	yarn add formik
+	
+	yarn add moment
+	
+In TodoComponent.jsx
+
+	export default function TodoComponent(){
+		const {id} = useParams()
+		const [description, setDescription] = useState('')    
+		const [targetDate, setTargetDate] = useState('')    
+		const authContext= useAuth()
+		const username = authContext.username
+		useEffect(
+			() => retrieveTodos(),[id]
+		)
+		function retrieveTodos(){
+			retrieveTodoApi(username,id)
+				.then(response => {
+					setDescription(response.data.description)
+					setTargetDate(response.data.targetDate)
+				})
+				.catch(error => console.log(error))
+		}
+		function onSubmit(values){
+			console.log(values)
+		}
+		function validate(values){
+			let errors={
+				// description:'Enter a valid description',
+				// targetDate:'Enter a valid target date'
+			}
+			if (values.description.length<5){
+				errors.description='Enter atleast 5 characters'
+			}   
+			if (values.targetDate == null || values.targetDate == ''){
+				errors.description='Enter targetDate'
+			} 
+			console.log(values)
+			return errors
+		}
+		return(
+			<div className="container">
+				<h1>Enter Todo Details</h1>
+				<div>
+					<Formik initialValues={ {description, targetDate} } 
+						enableReinitialize = {true}
+						onSubmit={onSubmit}
+						validate={validate}
+						validateOnChange={false}
+						validateOnBlur={false}
+					>
+					{
+						(props) => (
+							<Form>
+								<ErrorMessage 
+									name="description"
+									component="div"
+									className="alert alert-warning"
+								/>
+								<ErrorMessage 
+									name="targetDate"
+									component="div"
+									className="alert alert-warning"
+								/>
+								<fieldset className="form-group">
+									<label>Description</label>
+									<Field type="text" className="form-control m-1" name = "description" />
+								</fieldset>
+								<fieldset className="form-group">
+									<label>Target Date</label>
+									<Field type="date" className="form-control m-1" name = "targetDate" />
+								</fieldset>
+								<div>
+									<button className="btn btn-success m-5" type="submit">Save</button>
+								</div>
+							</Form>
+						)
+					}
+					</Formik>
+				</div>
+			</div>
+		)
+	}
+--------------------------------------------------------------------------------------------------------------------
