@@ -549,3 +549,152 @@ In TodoComponent.jsx
 		)
 	}
 --------------------------------------------------------------------------------------------------------------------
+In TodoResource.java
+		
+		@PutMapping("/users/{username}/todos/{id}")
+		public Todo updateTodo(@PathVariable String username, @PathVariable int id, @RequestBody Todo todo) {
+			todoService.updateTodo(todo);
+			return todo;
+		}
+
+		@PostMapping("/users/{username}/todos")
+		public Todo createTodo(@PathVariable String username, @RequestBody Todo todo) {
+			Todo createdTodo = todoService.addTodo(todo.getUsername(),todo.getDescription(),todo.getTargetDate(),todo.isDone());
+			return createdTodo;
+		}
+
+In TodoApiService.js
+
+		export const updateTodoApi
+				= (username,id,todo) =>  apiClient.put(`/users/${username}/todos/${id}` , todo)
+
+		export const createTodoApi
+				= (username,todo) =>  apiClient.post(`/users/${username}/todos` , todo)
+
+In ListTodosComponent.jsx
+
+		In function ListTodosComponent
+
+			function updateTodo(id){
+				console.log(id);
+				navigate(`/todo/${id}`)
+			}
+			function addNewTodo(){
+				navigate('/todo/-1')
+			} 
+			
+			In return 
+			
+				After div of table 
+					
+					            <div className="btn btn-success m-5" onClick={addNewTodo}>Add New Todo</div>
+
+In TodoComponent.jsx
+
+		In function TodoComponent
+		
+			const navigate = useNavigate()
+			useEffect(
+				() => retrieveTodos(),[id]
+			)
+			function retrieveTodos(){
+				if(id != -1) {
+					retrieveTodoApi(username,id)
+						.then(response => {
+							setDescription(response.data.description)
+							setTargetDate(response.data.targetDate)
+						})
+						.catch(error => console.log(error))
+				}
+			}
+			function onSubmit(values){
+				const todo = {
+					id:id,
+					username:username,
+					description:values.description,
+					targetDate:values.targetDate,
+					done:false
+				}
+				if(id == -1){
+					createTodoApi(username,todo)
+						.then(response => {
+							navigate('/todos')
+						})
+						.catch(error => console.log(error))
+				}
+				else {
+					updateTodoApi(username,id,todo)
+						.then(response => {
+							navigate('/todos')
+						})
+						.catch(error => console.log(error))
+				}
+			}
+			function validate(values){
+				let errors={}
+				if (values.description.length<5){
+					errors.description='Enter atleast 5 characters'
+				}   
+				if (values.targetDate == null || values.targetDate == '' || !moment(values.targetDate).isValid){
+					errors.targetDate='Enter targetDate'
+				} 
+				return errors
+			}
+--------------------------------------------------------------------------------------------------------------------
+Spring Security
+
+In pom.xml
+	
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+In /restful-web-services/src/main/java/com/practice/rest/webservices/restfulwebservices/basic/BasicAuthenticationSecurityConfiguration.java
+
+	@Configuration
+	public class BasicAuthenticationSecurityConfiguration {
+		//To configure spring security filter chain 
+		//We want to disable csrf
+		//But if we start defining this chain, we need to define the entire chain
+		//Be default spring security authenticates all requests , and we want to use basic authentication for all requests
+		//The best practice when disabling csrf is to not have any sessions, 
+		//so when we have sessions it is very important to enable csrf
+		//Here we are creating RestAPI, so we don't need any session, so want to create a "SateLess RestAPI"
+		
+		@Bean
+		public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	//		http.authorizeHttpRequests(
+	//				auth -> auth.anyRequest().authenticated()
+	//				);
+	//		
+	//		//Basic Authentication ->
+	//		http.httpBasic(Customizer.withDefaults());
+	//		
+	//		//Stateless ->
+	//		http.sessionManagement(
+	//				session -> session.sessionCreationPolicy
+	//							(SessionCreationPolicy.STATELESS)	);
+	//		
+	//		//Disabling CSRF -> 
+	//		http.csrf().disable();
+	//	
+	//		or		
+	//		
+	//		http.authorizeHttpRequests(	auth -> auth.anyRequest().authenticated()	)
+	//			.httpBasic(Customizer.withDefaults())
+	//			.sessionManagement(		session -> session.sessionCreationPolicy ( SessionCreationPolicy.STATELESS)	)
+	//			.csrf().disable();
+	//		
+	//		return http.build();
+	//		
+	//		or
+			
+			return http.authorizeHttpRequests(	auth -> auth.anyRequest().authenticated()	)
+				.httpBasic(Customizer.withDefaults())
+				.sessionManagement(	session -> session.sessionCreationPolicy ( SessionCreationPolicy.STATELESS)	)
+				.csrf().disable()
+				.build();
+		}
+	}
+--------------------------------------------------------------------------------------------------------------------
