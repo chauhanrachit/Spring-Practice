@@ -698,3 +698,233 @@ In /restful-web-services/src/main/java/com/practice/rest/webservices/restfulwebs
 		}
 	}
 --------------------------------------------------------------------------------------------------------------------
+For Basic Authentication
+
+	In BasicAuthenticationSecurityConfiguration.java
+		
+		public class BasicAuthenticationSecurityConfiguration {	
+			@Bean
+			public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+				//1: Response to preflight request doesn't pass access control check 
+				//2: Basic auth 
+				return 
+						http.authorizeHttpRequests(	
+								auth -> auth
+		//							.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+									.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+									.anyRequest().authenticated()	
+								)
+							.httpBasic(Customizer.withDefaults())
+							.sessionManagement(	session -> session.sessionCreationPolicy ( SessionCreationPolicy.STATELESS)	)
+							.csrf().disable()
+							.build();	
+			}
+		}
+	==============================================================
+	
+	In HelloWorldController.java
+		
+		@GetMapping(path = "/basicauth")
+		public String basicAuthCheck() {
+			return "Success";
+		}
+	==============================================================
+		
+	In HelloWorldApiService.js
+		
+		//Response to preflight request doesn't pass access control check =>  Authorization header
+		export const retriveHelloWorldPathVariable 
+				= (username,token) =>  apiClient.get(`/hello-world/path-variable/${username}` , {
+					headers : {
+						Authorization:token
+					}
+				})
+
+		export const executeBasicAuthenticationService 
+				= (token) =>  apiClient.get(`/basicauth` , {
+					headers : {
+						Authorization:token
+					}
+				})
+	==============================================================
+				
+	In AuthContext.js
+		
+		export default function AuthProvider( { children } ){
+
+		//3: Put some state in the context
+		const [isAuthenticated, setAuthenticated] = useState(false)
+		const [username, setUsername] = useState(null)
+		const [token, setToken] = useState(null)
+
+		// function login (username, password){
+		//     if(username==='rachit' && password==='rachit'){
+		//         setAuthenticated(true)
+		//         setUsername(username)
+		//         return true 
+		//     }
+		//     else {
+		//         setAuthenticated(false)
+		//         setUsername(null)
+		//         return false;
+		//     }
+		// }
+		async function login (username, password){
+
+			//to make token, using base64 encoding on username & password ->
+			const baToken= 'Basic ' + window.btoa(username + ":" + password)  
+
+			try{
+				const response = await executeBasicAuthenticationService(baToken)
+					// .then( response => console.log('2: '+response) )
+					// .catch( error => console.log(error) )
+
+				// console.log('1: Test')
+				//Here 1 will be printed before 2, i.e., we are not waiting for the response of basicAuth, 
+				//and going to the next lines, which should nopt be done,
+				//so, we will make this function 'async' and then,
+				// we can use 'await' on executeBasicAuthenticationService
+
+				if(response.status == 200 ){
+					setAuthenticated(true)
+					setUsername(username)
+					setToken(baToken)
+					return true 
+				}
+				else {
+					logout()
+					return false
+				}
+			} catch (error) {
+				logout()
+				return false
+			}
+		}
+
+		function logout (){
+			setAuthenticated(false)
+			setToken(null)
+			setUsername(null)
+		}
+
+		return (
+			<AuthContext.Provider value = { {isAuthenticated, login, logout, username, token} }>
+				{ children }
+			</AuthContext.Provider>
+		)
+	}
+	==============================================================
+	In LoginComponent.jsx
+	
+		async function handleSubmit(){
+			if(await authContext.login(username,password)){
+				setShowErrorMessage(false)
+				navigate(`/welcome/${username}`)
+			}
+			else {
+				setShowErrorMessage(true)
+			}
+		}
+	==============================================================
+	In WelcomeComponent.jsx
+		
+		const authContext = useAuth()
+		function callHelloWorldRestApi(){
+			retriveHelloWorldPathVariable(authContext.username, authContext.token)
+				.then(  (response) => successfulResponse(response)  )
+				.catch( (error) => errorResponse(error)  )
+				.finally(   () => console.log('cleanup')  )
+		}
+	==============================================================
+--------------------------------------------------------------------------------------------------------------------
+In HelloWorldApiService.js
+
+	import { apiClient } from "./ApiClient";
+	export const retriveHelloWorldBean 
+			= () =>  apiClient.get('/hello-world-bean')
+	export const retriveHelloWorldPathVariable 
+			= (username,token) =>  apiClient.get(`/hello-world/path-variable/${username}` 
+				// , {
+				// headers : {
+				//     Authorization:token
+				// }
+				// }
+			)
+	export const executeBasicAuthenticationService 
+			= (token) =>  apiClient.get(`/basicauth` , {
+				headers : {
+					Authorization:token
+				}
+			})
+	==============================================================
+
+In src\components\todo\api\ApiClient.js
+
+	import axios from "axios";
+	export const apiClient = axios.create(
+		{
+			baseURL: 'http://localhost:8080'
+		}
+	)
+	==============================================================
+	
+In AuthContext.js
+	
+	In Auth{Provider Function
+		
+		async function login (username, password){
+			const baToken= 'Basic ' + window.btoa(username + ":" + password)  
+			try{
+				const response = await executeBasicAuthenticationService(baToken)
+				if(response.status == 200 ){
+					setAuthenticated(true)
+					setUsername(username)
+					setToken(baToken)
+					apiClient.interceptors.request.use(
+						(config) => {
+							console.log('intercepting & adding token')
+							config.headers.Authorization=baToken
+							return config
+						}
+					)
+					return true 
+				}
+				else {
+					logout()
+					return false
+				}
+			} catch (error) {
+				logout()
+				return false
+			}
+		}
+		
+		//
+		//
+		return (
+			<AuthContext.Provider value = { {isAuthenticated, login, logout, username, token} }>
+				{ children }
+			</AuthContext.Provider>
+		)
+	==============================================================
+In TodoApiService.js
+	
+	import { apiClient } from "./ApiClient";
+	export const retriveAllTodosForUsernameApi
+			= (username) =>  apiClient.get(`/users/${username}/todos`)
+
+	export const deleteTodoApi
+			= (username,id) =>  apiClient.delete(`/users/${username}/todos/${id}`)
+
+	export const retrieveTodoApi
+			= (username,id) =>  apiClient.get(`/users/${username}/todos/${id}`)
+
+	export const updateTodoApi
+			= (username,id,todo) =>  apiClient.put(`/users/${username}/todos/${id}` , todo)
+
+	export const createTodoApi
+			= (username,todo) =>  apiClient.post(`/users/${username}/todos` , todo)
+	
+	==============================================================
+	
+--------------------------------------------------------------------------------------------------------------------
