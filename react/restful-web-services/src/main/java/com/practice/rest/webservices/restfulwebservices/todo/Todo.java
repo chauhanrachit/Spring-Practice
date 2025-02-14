@@ -2,11 +2,15 @@ package com.practice.rest.webservices.restfulwebservices.todo;
 
 import java.time.LocalDate;
 
-//@Entity
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+
+@Entity
 public class Todo {
 	
-//	@Id
-//	@GeneratedValue
+	@Id
+	@GeneratedValue
 	private int id;
 	private String username;
 	private String description;
