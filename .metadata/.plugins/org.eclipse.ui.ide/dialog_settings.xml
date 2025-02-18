@@ -8,6 +8,8 @@
 		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
 		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
 		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="D:\Spring Practice\mockito-demo"/>
+			<item value="D:\Spring Practice\react\restful-web-services"/>
 			<item value="D:\Spring Practice\restful-web-services"/>
 			<item value="D:\MyFolder\Projects\restful-web-services"/>
 			<item value="D:\MyFolder\Projects\Todo Web Application"/>

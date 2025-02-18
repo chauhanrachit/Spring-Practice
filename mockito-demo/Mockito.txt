@@ -1,0 +1,16 @@
+Introduction to Mocking with Mockito
+
+	Great unit tests => Easier Maintenance
+	
+	However, writing great unit tests is not easy
+	
+		Applications have multiple layers
+			Each class has multiple dependencies
+			
+	How to write unit test for classes with multiple dependencies?
+		Option 1: Stubs
+		
+		Option 2: Mocks
+			Advantages of Mocks
+				Simpler to Write
+				Easier to Maintain
