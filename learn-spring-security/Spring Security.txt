@@ -1,0 +1,443 @@
+Understanding Security Fundamentals
+	
+	In any system:
+		You have resources
+			A REST API, A Web Application, A Database, A resource in the cloud, ...
+			
+		You have identities
+			Identities need to access to resources and perform actions
+			
+		For example: Execute a REST API call, Read/modify data in a database
+			Key Questions:
+				How to identify users?
+				How to configure resources they can access & actions that are allowed?
+				
+	Authentication (is it the right user?)
+		UserId/password (What do you remember?)
+		Biometrics (What do you possess?)
+		
+	Authorization (do they have the right access?)
+		User XYZ can only read data
+		User ABC can read and update data
+--------------------------------------------------------------------------------------------------------------------------------
+Understanding Important Security Principles
+
+	A chain is only as strong as its WEAKEST link
+		Small security flaw makes an app with robust architecture vulnerable
+		
+	6 Principles Of Building Secure Systems
+		1: Trust Nothing
+			Validate every request
+			Validate piece of data or information that comes into the system
+			
+		2: Assign Least Privileges
+			Start the design of the system with security requirements in mind
+			Have a clear picture of the user roles and accesses
+			Assign Minimum Possible Privileges at all levels
+				Application
+				Infrastructure (database + server + ..)
+				
+		3: Have Complete Mediation
+			How were Medieval Fort's protected?
+				Everyone had to pass through one main gate
+				
+			Apply a well-implemented security filter. Test the role and access of each user
+			
+		4: Have Defense In Depth
+			Multiple levels of security
+				Transport, Network, Infrastructure
+				Operating System, Application, ..
+			
+		5: Have Economy Of Mechanism
+			Security architecture should be simple
+			Simple systems are easier to protect
+			
+		6: Ensure Openness Of Design
+			Easier to identify and fix security flaws
+			Opposite of the misplaced idea of "Security Through Obscurity"
+		
+--------------------------------------------------------------------------------------------------------------------------------
+Getting Started with Spring Security
+
+	Security is the NO 1 priority for enterprises today!
+	
+	What is the most popular security project in the Spring eco-system?
+		Spring Security: Protect your web applications, REST API and microservices
+		Spring Security can be difficult to get started
+			Filter Chain
+			Authentication managers
+			Authentication providers
+			...
+			
+	BUT it provides a very flexible security system!
+		By default, everything is protected!
+		A chain of filters ensure proper authentication and authorization
+--------------------------------------------------------------------------------------------------------------------------------
+How does Spring MVC Work?
+	DispatcherServlet acts as the front controller
+		Intercepts all requests
+		Routes to the Right Controller
+		
+How does Spring Security Work?
+	Spring security intercepts all requests
+	
+	Follows following security principle
+		3: Have Complete Mediation
+		
+	Spring security executes a series of filters
+		Also called Spring Security Filter Chain
+		
+	Spring Security executes a series of filters
+		Filters provide these features:
+			Authentication: Is it a valid user? (Ex: BasicAuthenticationFilter)
+			
+			Authorization: Does the user have right access?(Ex: AuthorizationFilter)
+			
+			Other Features:
+				Cross-Origin Resource Sharing (CORS) - CorsFilter
+					Should you allow AJAX calls from other domains?
+					
+				Cross Site Request Forgery (CSRF) - CsrfFilter
+					A malicious website making use of previous authentication on your website
+					Default: CSRF protection enabled for update requests - POST, PUT etc..
+					
+				Login Page, Logout Page
+					LogoutFilter, DefaultLoginPageGeneratingFilter, DefaultLogoutPageGeneratingFilter
+					
+				Translating exceptions into proper Http Responses (ExceptionTranslationFilter)
+				
+		Order of filters is important (typical order shown below)
+			1: Basic Check Filters - CORS, CSRF, ..
+			2: Authentication Filters
+			3: Authorization Filters	
+	
+--------------------------------------------------------------------------------------------------------------------------------
+Default Spring Security Configuration
+	
+	Everything is authenticated
+		You can customize it further
+		
+	Form authentication is enabled (with default form and logout features)
+	
+	Basic authentication is enabled
+	
+	Test user is created
+		Credentials printed in log (Username is user)
+		
+	CSRF protection is enabled
+	
+	CORS requests are denied
+	
+	X-Frame-Options is set to 0 (Frames are disabled)
+	
+	And a lot of others...
+--------------------------------------------------------------------------------------------------------------------------------
+Exploring Form Based Authentication
+
+	Used by most web applications
+	
+	Uses a Session Cookie
+		JSESSIONID: E2E693A57F6F7E4AC112A1BF4D40890A
+		
+	Spring security enables form based authentication by default
+	
+	Provides a default Login Page
+	
+	Provides a default Logout Page
+	
+	Provides a /logout URL
+	
+	You can add a change password page
+		(http.passwordManagement(Customizer.withDefaults()))
+--------------------------------------------------------------------------------------------------------------------------------
+Exploring Basic Authentication
+	
+	Most basic option for Securing REST API
+		BUT has many flaws
+		NOT recommended for production use
+		
+	Base 64 encoded username and password is sent as request header
+		Authorization: Basic aW4yOG1pbnV0ZXM6ZHVtbXk=
+		(DISADVANTAGE) Easy Decoding
+		
+	Basic Auth Authorization Header:
+		Does NOT contain authorization information (user access, roles,..)
+		Does NOT have Expiry Date
+--------------------------------------------------------------------------------------------------------------------------------
+Getting started with Cross-Site Request Forgery (CSRF)
+	
+	1: You are logged-in to your bank website
+		A cookie Cookie-A is saved in the your web browser
+		
+	2: You go to a malicious website without logging out
+	
+	3: Malicious website executes a bank transfer without your knowledge using Cookie-A
+	
+	How can you protect from CSRF?
+		1: Synchronizer token pattern
+			A token created for each request
+			To make an update (POST, PUT, ..), you need a CSRF token from the previous request
+			
+		2: SameSite cookie (Set-Cookie: SameSite=Strict)
+			application.properties
+				server.servlet.session.cookie.same-site=strict
+				
+			Depends on browser support
+--------------------------------------------------------------------------------------------------------------------------------
+In application.properties
+
+	spring.security.user.name=rachit
+	spring.security.user.password=pass
+===========================================
+
+In com.practice.learn_spring_security.resources
+
+===========================================
+	@RestController
+	public class HelloWorldResource {
+	
+		@GetMapping("/hello-world")
+		public String helloWorld() {
+			return "Hello World";
+		} 
+	}
+	
+===========================================
+	@RestController
+	public class TodoResource {
+		
+		private Logger logger = LoggerFactory.getLogger(getClass());
+		private static final List<Todo> TODOS_LIST = 
+				List.of(new Todo("rachit", "Learn AWS"),
+						new Todo("rachit", "Learn Spring Security"));
+		@GetMapping("/todos")
+		public List<Todo> retrieveAllTodos() {
+			return TODOS_LIST;
+		} 
+		@GetMapping("/users/{username}/todos")
+		public Todo retrieveTodosForSpecificUser(@PathVariable("username") String username) {
+			return TODOS_LIST.get(0);
+		} 
+		@PostMapping("/users/{username}/todos")
+		public void createTodosForSpecificUser(@PathVariable("username") String username, @RequestBody Todo todo) {
+			logger.info("Create {} from {}", todo, username);
+		} 
+	}
+	record Todo (String username, String description) {}
+	
+===========================================
+	
+	@RestController
+	public class SpringSecurityPlayResource {
+	
+		@GetMapping("/csrf-token")
+		public CsrfToken retrieveCsrfToken(HttpServletRequest request) {
+			return (CsrfToken)request.getAttribute("_csrf");
+		}
+	}
+	//To get csrf token for post requests
+	//CSRF token might not be applicable if there are no sessions involved, i.e., If Rest API is stateless, 
+	//in those kind of situations, we might not need to worry about CSRF.
+	//CSRF is something which is typically tied with the session, with the session cookie
+	//If we are using a pure stateless REST API, we might want to disable CSRF
+	
+	//FOr Stateless RESTAPI-- ctrl+shift+t -- search for SBWSC (Which is SpringBootWebSecurityConfiguration)
+	//From this class we can get the default filter chain 
+===========================================
+
+--------------------------------------------------------------------------------------------------------------------------------
+In /learn-spring-security/src/main/java/com/practice/learn_spring_security/basic/BasicAuthSecurityConfiguration.java
+
+	@Configuration
+	public class BasicAuthSecurityConfiguration {
+		@Bean
+		SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+			http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+			//http.formLogin(withDefaults());
+			http.sessionManagement(
+						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					);
+			http.httpBasic(withDefaults());
+			http.csrf().disable();
+			return http.build();
+
+	//		http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+	//		http.formLogin(withDefaults());
+	//		http.httpBasic(withDefaults());
+	//		return http.build();
+		}
+	}
+--------------------------------------------------------------------------------------------------------------------------------
+Getting Started with CORS
+
+		@Bean
+		public WebMvcConfigurer corsConfigurer() {
+			return new WebMvcConfigurer() {
+				public void addCorsMappings(CorsRegistry registry) {
+					registry.addMapping("/**")
+						.allowedMethods("*")
+						.allowedOrigins("http://localhost:3000");
+				}
+			};
+		}
+		
+Storing User Credentials
+		
+		@Bean
+		public UserDetailsService userDetailsService(DataSource dataSource) {
+			UserDetails user = User.builder()
+				.username("in28minutes")
+				//.password("{noop}dummy")
+				.password("dummy")
+				.roles("USER")
+				.passwordEncoder(str -> passwordEncoder().encode(str))
+				.build();
+			JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+			users.createUser(user);
+			return users;
+			//return new InMemoryUserDetailsManager(user);
+		}
+		
+	User credentials can be stored in:
+		In Memory - For test purposes. Not recommended for production.
+		Database - You can use JDBC/JPA to access the credentials.
+		LDAP - Lightweight Directory Access Protocol
+			Open protocol for directory services and authentication
+--------------------------------------------------------------------------------------------------------------------------------
+
+In build.gradle
+
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'com.h2database:h2'
+	
+In application.properties
+
+	#spring.security.user.name=rachit
+	#spring.security.user.password=pass
+	spring.datasource.url=jdbc:h2:mem:testdb
+
+In BasicAuthSecurityConfiguration.java
+
+	@Configuration
+	public class BasicAuthSecurityConfiguration {
+		@Bean
+		SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+			http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+			//http.formLogin(withDefaults());
+			http.sessionManagement(
+						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					);
+			http.httpBasic(withDefaults());
+			http.csrf().disable();
+			http.headers().frameOptions().sameOrigin();
+			return http.build();
+			
+	//		http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+	//		http.formLogin(withDefaults());
+	//		http.httpBasic(withDefaults());
+	//		return http.build();
+		}
+		@Bean
+		public UserDetailsService userDetailsService() {
+			var user = User.withUsername("rachit")
+				.password("{noop}pass")
+				.roles("USER")
+				.build();
+			var admin = User.withUsername("admin")
+					.password("{noop}pass")
+					.roles("ADMIN")
+					.build();
+			return new InMemoryUserDetailsManager(user,admin);
+		}
+		//For storing User details in the DB --
+		//ctrl+shift+t -> go to JdbcDaoImpl class
+		//From there we can get DEFAULT_USER_SCHEMA_DDL_LOCATION 
+		//(this is the path of a ddl which contains schema for creating a User table in db)
+		//And we want it to be executed on startup of our application
+		@Bean
+		public DataSource dataSource() {
+			return new EmbeddedDatabaseBuilder()
+					.setType(EmbeddedDatabaseType.H2)
+					.addScript(JdbcDaoImpl.DEFAULT_USER_SCHEMA_DDL_LOCATION)
+					.build();
+		}
+	}
+
+--------------------------------------------------------------------------------------------------------------------------------
+In BasicAuthSecurityConfiguration
+
+	//	@Bean
+	//	public UserDetailsService userDetailsService() {
+	//		
+	//		var user = User.withUsername("rachit")
+	//			.password("{noop}pass")
+	//			.roles("USER")
+	//			.build();
+	//		var admin = User.withUsername("admin")
+	//				.password("{noop}pass")
+	//				.roles("ADMIN")
+	//				.build();
+	//		
+	//		return new InMemoryUserDetailsManager(user,admin);
+	//	}		
+		@Bean
+		public UserDetailsService userDetailsService(DataSource dataSource) {
+			
+			var user = User.withUsername("rachit")
+				.password("{noop}pass")
+				.roles("USER")
+				.build();
+			var admin = User.withUsername("admin")
+					.password("{noop}pass")
+					.roles("ADMIN","USER")
+					.build();
+			
+			var jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+			jdbcUserDetailsManager.createUser(user);
+			jdbcUserDetailsManager.createUser(admin);
+			
+			return jdbcUserDetailsManager;
+		}	
+	
+--------------------------------------------------------------------------------------------------------------------------------
+Encoding vs Hashing vs Encryption
+
+	Encoding: Transform data - one form to another
+		Does NOT use a key or password
+		Is reversible
+		Typically NOT used for securing data
+		Usecases: Compression, Streaming
+		Example: Base 64, Wav, MP3
+		
+	Hashing: Convert data into a Hash (a String)
+		One-way process
+		NOT reversible
+		You CANNOT get the original data back!
+		Usecases: Validate integrity of data
+		Example: bcrypt, scrypt
+		
+	Encryption: Encoding data using a key or password
+		You need to key or password to decrypt
+		Example: RSA
+		
+Spring Security - Storing Passwords
+	
+	Hashes like SHA-256 are no longer secure
+	
+	Modern systems can perform billions of hash calculations a second
+		AND systems improve with time!
+		
+	Recommended: Use adaptive one way functions with Work factor of 1 second
+		It should take at least 1 second to verify a password on your system
+		Examples: bcrypt, scrypt, argon2, ..
+		
+	PasswordEncoder - interface for performing one way transformation of a password
+		(REMEMBER) Confusingly Named!
+		BCryptPasswordEncoder
+
+
+
+
+
+
+		

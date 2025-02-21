@@ -15,4 +15,7 @@
 		<item key="replaceOccurrences" value="true"/>
 		<item key="replaceOccurrencesInThisFile" value="false"/>
 	</section>
+	<section name="org.eclipse.ltk.ui.refactoring.settings">
+		<item key="qualifyReferences" value="false"/>
+	</section>
 </section>
