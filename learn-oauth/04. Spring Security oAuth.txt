@@ -1,0 +1,53 @@
+Getting Started with OAuth
+
+	How can you give an application access to files present on your google drive?
+		You don't want to provide your credentials (NOT SECURE)
+		
+	OAuth: Industry-standard protocol for authorization
+		Also supports authentication now!
+		
+	Let's say you want to provide access to your Google Drive files to the Todo management application!
+		Important Concepts:
+			Resource owner: You (Person owning the google drive files)
+			Client application: Todo management application
+			Resource server: Contains the resources that are being accessed - Google Drive
+			Authorization server: Google OAuth Server
+-----------------------------------------------------------------------------------------------------------
+In application.properties
+
+	spring.application.name=learn-oauth
+
+	spring.security.oauth2.client.registration.google.client-id=
+	spring.security.oauth2.client.registration.google.client-secret=
+	
+	#Details To be taken from -- https://console.cloud.google.com/			
+-----------------------------------------------------------------------------------------------------------
+in com/practice/learn_oauth/OauthSecurityConfiguration.java
+
+	@Configuration
+	public class OauthSecurityConfiguration {
+		@Bean
+		@Order(SecurityProperties.BASIC_AUTH_ORDER)
+		SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+			http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+			//http.formLogin(withDefaults());
+			//http.httpBasic(withDefaults());
+			http.oauth2Login(Customizer.withDefaults());
+			return http.build();
+		}
+	}
+-----------------------------------------------------------------------------------------------------------
+In com/practice/learn_oauth/HelloWorldResource.java
+
+	@RestController
+	public class HelloWorldResource {
+		
+		@GetMapping("/")
+		public String helloWorld(Authentication authentication) {
+			System.out.println(authentication);
+			System.out.println(authentication.getPrincipal());
+			return "Hello World";
+		}
+	}
+-----------------------------------------------------------------------------------------------------------
+	

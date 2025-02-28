@@ -1,0 +1,85 @@
+Understanding Spring Security Authentication
+	
+	Authentication is done as part of the Spring Security Filter Chain!
+	
+	1: AuthenticationManager - Responsible for authentication
+		Can interact with multiple authentication providers
+		
+	2: AuthenticationProvider - Perform specific authentication type
+		JwtAuthenticationProvider - JWT Authentication
+		
+	3: UserDetailsService - Core interface to load user data
+		How is authentication result stored?
+			SecurityContextHolder > SecurityContext > Authentication > GrantedAuthority
+				Authentication - (After authentication) Holds user (Principal) details
+				GrantedAuthority - An authority granted to principal (roles, scopes,..)
+	
+=================================================================================================================
+Exploring Spring Security Authorization
+		
+	1: Global Security: authorizeHttpRequests
+		.requestMatchers("/users").hasRole("USER")
+			hasRole, hasAuthority, hasAnyAuthority, isAuthenticated
+		
+	2: Method Security (@EnableMethodSecurity)
+		@Pre and @Post Annotations
+			@PreAuthorize("hasRole('USER') and #username == authentication.name")
+			@PostAuthorize("returnObject.username == 'rachit'")
+			
+		JSR-250 annotations
+			@EnableMethodSecurity(jsr250Enabled = true)
+			@RolesAllowed({"ADMIN", "USER"})
+			
+		@Secured annotation
+			@EnableMethodSecurity(securedEnabled = true)
+			@Secured({"ROLE_ADMIN", "ROLE_USER"})
+		
+	(REMEMBER) JWT: Use		hasAuthority('SCOPE ROLE USER')
+	
+=================================================================================================================
+In BasicAuthSecurityConfiguration.java
+
+	@Configuration
+	@EnableMethodSecurity(jsr250Enabled = true,securedEnabled = true)
+	public class BasicAuthSecurityConfiguration {
+		@Bean
+		SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+			http.authorizeHttpRequests(
+					auth -> {
+							auth
+							.requestMatchers("/users").hasRole("USER")
+							.requestMatchers("/admin/**").hasRole("ADMIN")
+							.anyRequest().authenticated();
+					});
+			//http.formLogin(withDefaults());
+			http.sessionManagement(
+						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					);
+			http.httpBasic(withDefaults());
+			http.csrf().disable();
+			http.headers().frameOptions().sameOrigin();
+			return http.build();
+		}
+
+In TodoResource.java
+
+	@GetMapping("/users/{username}/todos")
+	@PreAuthorize("hasRole('USER') and #username == authentication.name")
+	@PostAuthorize("returnObject.username == 'rachit'")
+	@RolesAllowed({"ADMIN", "USER"})
+	@Secured({"ROLE_ADMIN", "ROLE_USER"})
+//	@PreAuthorize("hasAuthority('ROLE_USER') and #username == authentication.name")
+	public Todo retrieveTodosForSpecificUser(@PathVariable String username) {
+		return TODOS_LIST.get(0);
+	} 
+-----------------------------------------------------------------------------
+
+
+
+
+
+
+
+	
+	
+	

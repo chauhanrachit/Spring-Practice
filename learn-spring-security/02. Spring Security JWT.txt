@@ -1,0 +1,187 @@
+
+Getting Started with JWT Resource
+
+		username:"admin",
+		password:"pass"
+		Response
+		{
+		"token": "TOKEN_VALUE"
+		}
+	
+	Step 1: Use Basic Auth for getting the JWT Token
+	Step 2-n: Use JWT token as Bearer Token for authenticating requests	
+
+================================
+In build.gradle
+	
+		implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+================================
+Make a copy --
+
+src/main/java/com/practice/learn_spring_security/jwt/JWTSecurityConfiguration.java
+
+from BasicAuthSecurityConfiguration.java and comment @Configuration annotation in BasicAuth
+
+================================
+
+The following code is for verification of JWT, once JWT is sent to outhServer, 
+it should decode it and check if the jwt token is valid  
+In JWTSecurityConfiguration.java
+
+	@Configuration
+	public class JWTSecurityConfiguration {
+		@Bean
+		SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+			
+			http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+			//http.formLogin(withDefaults());
+			http.sessionManagement(
+						session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+					);
+			http.httpBasic(withDefaults());
+			http.csrf().disable();
+			http.headers().frameOptions().sameOrigin();
+			
+			//		Press ctrl+ shift + t and search OA2RSC OR OAuth2ResourceServerConfigurer
+			//		Copy the qualified name of OAuth2ResourceServerConfigurer.jwt()
+			http.oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+			
+			//	For the error "Method securityFilterChain in com.practice.learn_spring_security.jwt.JWTSecurityConfiguration 
+			//	required a bean of type 'org.springframework.security.oauth2.jwt.JwtDecoder' that could not be found."
+			//	This oauth2ResourceServer server when receives a JWTToken it needs to decode it so we need a JwtDecoder method
+			
+			//Search class KeyPairGenerator
+			
+			return http.build();
+		}
+		
+		@Bean
+		public KeyPair keyPair() {
+			try {
+				var keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+				keyPairGenerator.initialize(2048);
+				return keyPairGenerator.generateKeyPair();
+			} catch(Exception ex) {
+				throw new RuntimeException(ex);
+			}
+		}
+		
+		//we need com.nimbusds for the next 2 method
+		@Bean 
+		public RSAKey rsaKey(KeyPair keyPair) {
+			
+			return new RSAKey
+					.Builder((RSAPublicKey) keyPair.getPublic())
+					.privateKey(keyPair.getPrivate())
+					.keyID(UUID.randomUUID().toString())
+					.build();
+		}
+		
+		@Bean
+		public JWKSource<SecurityContext> jwkSource(RSAKey rsaKey) {
+			var jwkSet = new JWKSet(rsaKey);
+			//Search JWKSource
+			//We need to override the get method in this interface
+			
+	//		var jwkSource = new JWKSource () {
+	//			@Override
+	//			public List get(JWKSelector jwkSelector, SecurityContext context) throws KeySourceException {
+	//				return jwkSelector.select(jwkSet);
+	//			}
+	//		};
+	//		return jwkSource;
+	//		or we can write it as -->
+			return (jwkSelector,context) -> jwkSelector.select(jwkSet);
+		}
+		
+		@Bean
+		public JwtDecoder jwtDecoder(RSAKey rsaKey) throws JOSEException {
+	//		Search NimbusJwt
+	//		In decoder, we will use withPublicKey(RSAPublicKey)
+			return NimbusJwtDecoder
+					.withPublicKey(rsaKey.toRSAPublicKey())
+					.build();
+		}
+		
+		@Bean
+		public DataSource dataSource() {
+			return new EmbeddedDatabaseBuilder()
+					.setType(EmbeddedDatabaseType.H2)
+					.addScript(JdbcDaoImpl.DEFAULT_USER_SCHEMA_DDL_LOCATION)
+					.build();
+		}
+		@Bean
+		public UserDetailsService userDetailsService(DataSource dataSource) {
+			
+			var user = User.withUsername("rachit")
+					.password("pass")
+					.passwordEncoder(str ->passwordEncoder().encode(str))
+					.roles("USER")
+					.build();
+			var admin = User.withUsername("admin")
+					.password("pass")
+					.passwordEncoder(str ->passwordEncoder().encode(str))
+					.roles("ADMIN","USER")
+					.build();
+			
+			var jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+			jdbcUserDetailsManager.createUser(user);
+			jdbcUserDetailsManager.createUser(admin);
+			
+			return jdbcUserDetailsManager;
+		}
+		@Bean
+		public BCryptPasswordEncoder passwordEncoder() {
+			return new BCryptPasswordEncoder(10);
+		}
+	}
+================================
+In JWTSecurityConfiguration
+
+	@Bean
+	public JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwkSource) {
+		return new NimbusJwtEncoder(jwkSource);
+	}
+	
+================================
+
+In com/practice/learn_spring_security/jwt/JwtAuthenticationResource.java
+
+	@RestController
+	public class JwtAuthenticationResource {
+		
+		private JwtEncoder jwtEncoder ; 
+		
+		public JwtAuthenticationResource(JwtEncoder jwtEncoder) {
+			this.jwtEncoder = jwtEncoder;
+		}
+	
+		@PostMapping("/authenticate")
+		public JwtResponse authenticate (Authentication authentication) {
+			
+			//return authentication;
+			return new JwtResponse (createToken(authentication)) ;
+		}
+	
+		private String createToken(Authentication authentication) {
+			var claims =  JwtClaimsSet.builder()
+									.issuer("self")
+									.issuedAt(Instant.now())
+									.expiresAt(Instant.now().plusSeconds(60 * 30))
+									.subject(authentication.getName())
+									.claim("scope", createScope(authentication))
+									.build();
+				
+			return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+		}
+	
+		private String createScope(Authentication authentication) {
+			return authentication.getAuthorities().stream()
+						.map(a -> a.getAuthority())
+						.collect(Collectors.joining(" "));
+		}
+		
+	}
+	record JwtResponse (String token) {}
+	
+================================
