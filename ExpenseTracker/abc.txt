@@ -1,0 +1,107 @@
+Created the project from spring.io
+
+entered in application.properties, to check the application by running -
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+in cmd --
+docker run --name expense-tracker-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=expense_tracker -p 3306:3306 -d mysql:8
+
+in application.properties (remove spring.autoconfigure.exclude) and add --
+spring.datasource.url=jdbc:mysql://localhost:3306/expense_tracker
+spring.datasource.username=root
+spring.datasource.password=root
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+in cmd --
+
+\connect root@localhost
+
+then enter password - root
+then  -  use expense_tracker
+
+in com.practice.ExpenseTracker.models
+Create Expense.java entity and Users.java entity
+
+in Users -
+	@Entity
+	@Table(name = "users")
+	@Getter
+	@Setter
+	@ToString
+	public class Users {
+		
+		@Id
+	    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	    private Long id;
+	    
+		@Column(unique = true, nullable = false)
+	    private String username;
+		
+		@Column(nullable = false)
+	    private String password;
+	    private String role;
+    
+in Expense - 
+	private Long id;
+    private String title;
+    private double amount;
+    private String category;
+    private LocalDate date;
+
+in com.practice.ExpenseTracker.repository
+	
+	create ExpenseRepository interface
+		public interface ExpenseRepository extends JpaRepository<Expense, Long> {
+			List<Expense> findByCategory(String category);
+		}
+	
+	create UserRepository interface
+		public interface UserRepository extends JpaRepository<Users, Long> {
+		    Optional<Users> findByUsername(String username);
+		}
+
+in com.practice.ExpenseTracker.service
+	
+	create ExpenseService class
+		
+		public ExpenseService(ExpenseRepository expenseRepository) {
+			this.expenseRepository = expenseRepository;
+		}
+		
+		public List<Expense> getAllExpenses() {
+	        return expenseRepository.findAll();
+	    }
+	
+	    public Expense createExpense(Expense expense) {
+	        return expenseRepository.save(expense);
+	    }
+
+in com.practice.ExpenseTracker.controllor
+	
+	create ExpenseController class
+		
+		@GetMapping
+	    public List<Expense> getAllExpenses() {
+	        return expenseService.getAllExpenses();
+	    }
+	
+	    @PostMapping
+	    public Expense createExpense(@RequestBody Expense expense) {
+	        return expenseService.createExpense(expense);
+	    }
+
+	    
+For JWT ----
+
+	Create --
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/models/Users.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/repository/UserRepository.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/service/AuthService.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/controller/AuthController.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/security/JwtUtil.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/security/JwtFilter.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/security/SecurityConfig.java
+		/ExpenseTracker/src/main/java/com/practice/ExpenseTracker/security/CustomUserDetailsService.java
+		
+		

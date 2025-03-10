@@ -1,0 +1,211 @@
+Download Redis from Memurai & install with "choco install redis -y --force"
+
+or
+
+use docker "docker run -d --name redis -p 6379:6379 redis"
+connect with redis cli using "docker exec -it redis redis-cli"
+in both commands, using redis as name of the docker (name redis, -it redis)
+
+in cmd -
+127.0.0.1:6379> PING
+PONG
+127.0.0.1:6379> CONFIG GET requirepass
+1) "requirepass"
+2) ""
+
+if there is password in 2), then, in cmd - 	"AUTH your_password"
+
+
+
+Step 1: Add Redis Dependency in pom.xml
+	What are we doing?
+		We need to add the Spring Boot Redis dependency to use Redis caching in our application.
+	
+	Why is this needed?
+		Spring Boot does not support Redis caching by default.
+		The dependency allows us to interact with Redis and cache data efficiently.
+		Caching helps reduce database queries and speeds up responses.
+		
+	How to do it?
+		Open your pom.xml file.
+		Add the following dependency inside the <dependencies> section:
+
+				<dependency>
+				    <groupId>org.springframework.boot</groupId>
+				    <artifactId>spring-boot-starter-data-redis</artifactId>
+				</dependency>
+			
+		Save the file and run:
+	
+				mvn clean install
+			This ensures that Maven downloads and installs the Redis library.
+			
+================================================================================
+
+Step 2: Configure Redis in application.properties
+	
+	What are we doing?
+		We need to configure our Spring Boot application to connect to a Redis server.
+	
+	Why is this needed?
+		Spring Boot needs to know where Redis is running (hostname, port).
+		Without this, Spring won’t be able to store or retrieve cached data.
+	
+	How to do it?
+		Open the src/main/resources/application.properties file.
+		Add the following configuration:
+
+				spring.redis.host=localhost
+				spring.redis.port=6379
+				
+			spring.redis.host → The Redis server is running on localhost (default).
+			spring.redis.port → Redis runs on port 6379 by default.
+			
+	If Redis requires a password, add:
+
+			spring.redis.password=your_redis_password
+			
+	Save the file.
+	
+================================================================================
+	
+Step 3: Enable Caching in Spring Boot
+	What are we doing?
+		We enable Spring Boot's caching mechanism to use Redis as the cache provider.
+	
+	Why is this needed?
+		By default, Spring Boot does not cache anything.
+		We need to enable caching so Spring can automatically cache method results.
+	
+	How to do it?
+		Open your main Spring Boot application class (ExpenseTrackerApplication.java).
+		Add the @EnableCaching annotation:
+
+				import org.springframework.boot.SpringApplication;
+				import org.springframework.boot.autoconfigure.SpringBootApplication;
+				import org.springframework.cache.annotation.EnableCaching;
+				
+				@SpringBootApplication
+				@EnableCaching  // Enables caching in Spring Boot
+				public class ExpenseTrackerApplication {
+				    public static void main(String[] args) {
+				        SpringApplication.run(ExpenseTrackerApplication.class, args);
+				    }
+				}
+				
+	Save and restart your application.
+
+================================================================================
+
+Step 4: Cache Expense Retrieval
+	
+	What are we doing?
+		We will cache the getExpenses() method so that data is retrieved from Redis instead of the database.
+	
+	Why is this needed?
+		Every time we call getExpenses(), it fetches data from the database, which is slow.
+		By caching the result, subsequent calls will be much faster.
+	
+	How to do it?
+		Open your Expense Service (ExpenseService.java).
+		Add @Cacheable("expenses") to the method:
+	
+				import org.springframework.cache.annotation.Cacheable;
+				import org.springframework.stereotype.Service;
+				import java.util.List;
+				
+				@Service
+				public class ExpenseService {
+				
+				    private final ExpenseRepository expenseRepository;
+				
+				    public ExpenseService(ExpenseRepository expenseRepository) {
+				        this.expenseRepository = expenseRepository;
+				    }
+				
+				    @Cacheable("expenses") // Caches the result in Redis
+				    public List<Expense> getExpenses() {
+				        System.out.println("Fetching expenses from DB...");
+				        return expenseRepository.findAll();
+				    }
+				}
+		Save the file.
+		
+	How does this work?
+		The first time getExpenses() is called, data is fetched from the database and stored in Redis.
+		Next time, the method skips the database and returns data from Redis, making it faster.
+		
+================================================================================
+
+Step 5: Clear Cache on Updates
+	What are we doing?
+		When a new expense is added or updated, we clear the cache so that the data remains fresh.
+	
+	Why is this needed?
+		If we only cache data, the database and Redis might have different values.
+		Clearing the cache ensures updated data is fetched from the database next time.
+	
+	How to do it?
+		Open your Expense Service (ExpenseService.java).
+		Modify the addExpense() method to clear the cache:
+
+				import org.springframework.cache.annotation.CacheEvict;
+				
+				public class ExpenseService {
+				    
+				    // Existing code...
+				
+				    @CacheEvict(value = "expenses", allEntries = true) // Clears cache on updates
+				    public Expense addExpense(Expense expense) {
+				        return expenseRepository.save(expense);
+				    }
+				}
+				
+		Save the file.
+		
+	How does this work?
+		When addExpense() is called, cache is deleted.
+		The next getExpenses() call will fetch fresh data from the database and re-cache it.
+
+================================================================================
+
+Step 6: Start Redis and Test
+	
+	What are we doing?
+		We need to start the Redis server and test caching.
+	
+	How to do it?
+		Start Redis (if not running):
+			Windows: Open Command Prompt and run:
+
+				redis-server
+				
+			For Docker: in cmd :
+			
+				use docker/create docker image "docker run -d --name NAME_TO_BE_GIVEN_TO_DOCKER_IMAGE -p 6379:6379 redis"
+				connect with redis cli using "docker NAME_TO_BE_GIVEN_TO_DOCKER_IMAGE -it redis redis-cli"
+
+	Test API with Postman:
+	
+		First request: Calls database.
+		Second request: Returns cached data (faster response time).
+		
+	Check Redis Cache (Optional):
+		Open Redis CLI:
+			redis-cli
+				KEYS *
+	
+	If expenses appears, caching is working correctly.
+
+================================================================================
+
+Step			What We Did?												Why?
+
+1		Added Redis dependency									Allows Spring Boot to use Redis
+2		Configured Redis in application.properties				Connects Spring Boot with Redis
+3		Enabled caching with @EnableCaching						Enables caching support
+4		Cached getExpenses() with @Cacheable("expenses")		Reduces database calls, speeds up responses
+5		Cleared cache on updates with @CacheEvict				Ensures fresh data when new expenses are added
+6		Started Redis and tested caching						Verified everything is working
+================================================================================
+	
