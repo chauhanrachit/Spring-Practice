@@ -1,6 +1,6 @@
 import './App.css';
 import React from 'react';
-import ExpenseTracker from './components/modules/ExpenseTracker';
+import ExpenseTracker from './components/pages/ExpenseTracker';
 
 function App() {
   return(

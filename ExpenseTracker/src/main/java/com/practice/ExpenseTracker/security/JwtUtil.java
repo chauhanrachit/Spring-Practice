@@ -69,7 +69,9 @@ public class JwtUtil {
                     .getPayload()
                     .getSubject();
         } catch (JwtException e) {
-            return null; // Invalid token
+        	System.err.println("Error extracting username from JWT: " + e.getMessage());
+            throw new JwtException("Invalid JWT token", e); // Better than returning null
+//            return null; // Invalid token
         }
     }
     

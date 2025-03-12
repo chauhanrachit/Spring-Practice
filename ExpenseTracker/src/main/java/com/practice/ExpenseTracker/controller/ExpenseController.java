@@ -28,6 +28,7 @@ public class ExpenseController {
 
     @PostMapping
     public Expense createExpense(@RequestBody Expense expense) {
+    	System.out.println("Before create");
         return expenseService.createExpense(expense);
     }
     
